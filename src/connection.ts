@@ -12,25 +12,21 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
     private address: string;
     private peers: connectionManager.ConnectionManager;
     private connection: WebSocket;
-    private emitter: events.EventEmitter;
+    public emitter: events.EventEmitter;
    
-    constructor(address: string, peers: connectionManager.ConnectionManager, connection: WebSocket) {
+    constructor(address: string, peers: connectionManager.ConnectionManager) {
         super(this)
         this.address = address;
         this.peers = peers;
-        this.connection = connection;
         this.emitter = new events.EventEmitter();
-
-        connection.addEventListener('message', this.messageHandler.bind(this));
-        connection.addEventListener('close', this.closeHandler.bind(this));
     }
 
-    static create(address: string, peers: connectionManager.ConnectionManager, connection: WebSocket): API {
-        var instance = new Connection(address, peers, connection);
+    static create(address: string, peers: connectionManager.ConnectionManager): API {
+        var instance = new Connection(address, peers);
         return instance.getApi();
     }
 
-    private getApi(): API {
+    public getApi(): API {
         return {
             address: this.address,
             on: this.emitter.on.bind(this.emitter),
@@ -38,16 +34,9 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
         };
     }
 
-    private messageHandler(ev: MessageEvent): void {
-        console.log('message', ev);
-        if (ev.type === "utf8") {
-            var message = JSON.parse(ev.data);
-            this.readMessage(message);
-        }
-    }
-
-    private closeHandler(ev: CloseEvent): void {
-        this.emitter.emit('close');
+    public readMessageData(data: string): void {
+        var message = JSON.parse(data);
+        this.readMessage(message);
     }
 
     public writeMessage(message: any): void {
