@@ -1,0 +1,22 @@
+{
+  "name": "browser-relay-client",
+  "version": "0.0.1",
+  "description": "Single client representation for peer-to-peer network",
+  "main": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/overelay/browser-relay-client.git"
+  },
+  "author": "Eugene Chernyshov <chernyshov.eugene@gmail.com>", 
+  "licenses": [
+    {
+      "type": "LGPLv3",
+      "url": "http://opensource.org/licenses/LGPL-3.0"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/overelay/browser-relay-client/issues",
+    "email": "chernyshov.eugene@gmail.com" 
+  },
+  "homepage": "https://github.com/overelay/browser-relay-client"
+}
