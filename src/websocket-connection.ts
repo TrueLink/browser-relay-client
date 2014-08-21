@@ -9,7 +9,7 @@ class WebSocketConnection extends connection.Connection {
 
     private webSocket: WebSocket;
 
-    constructor(address: string, peers: connectionManager.ConnectionManager, webSocket: WebSocket) {
+    constructor(address: string, peers: connection.IManager, webSocket: WebSocket) {
         super(address, peers);
 
         this.webSocket = webSocket;
@@ -41,7 +41,7 @@ class WebSocketConnection extends connection.Connection {
         return api;
     }
 
-    static create(address: string, peers: connectionManager.ConnectionManager, options: {
+    static create(address: string, peers: connection.IManager, options: {
         PROTOCOL_NAME?: string;
     } = {}): API {
         var PROTOCOL_NAME = options.PROTOCOL_NAME || protocol.PROTOCOL_NAME;

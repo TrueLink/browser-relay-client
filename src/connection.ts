@@ -1,27 +1,44 @@
-﻿import connectionManager = require("connection-manager");
-import events = require("events");
-import protocol = require("./protocol");
+﻿import protocol = require('./protocol');
+
+export interface EventEmitter {
+    on(event: string, listener: Function): EventEmitter;
+    removeListener(event: string, listener: Function): EventEmitter;
+    emit(event: string, ...args: any[]): boolean;
+}
+
+export interface EventEmitterFactory {
+    new (): EventEmitter;
+}
 
 export interface API {
     address: string;
-    on(event: string, listener: Function): events.EventEmitter;
-    removeListener(event: string, listener: Function): events.EventEmitter;
+    on(event: string, listener: Function): EventEmitter;
+    off(event: string, listener: Function): EventEmitter;
+}
+
+export interface IManager {
+    get(destination: string): API;
+}
+
+export interface Callbacks {
+    writeMessage(message: any): void;
 }
 
 export class Connection extends protocol.Protocol implements protocol.Callbacks {
     private address: string;
-    private peers: connectionManager.ConnectionManager;
-    private connection: WebSocket;
-    public emitter: events.EventEmitter;
+    private peers: IManager;
+    public emitter: EventEmitter;
+
+    static EventEmitter: EventEmitterFactory;
    
-    constructor(address: string, peers: connectionManager.ConnectionManager) {
+    constructor(address: string, peers: IManager) {
         super(this)
         this.address = address;
         this.peers = peers;
-        this.emitter = new events.EventEmitter();
+        this.emitter = new Connection.EventEmitter();
     }
 
-    static create(address: string, peers: connectionManager.ConnectionManager): API {
+    static create(address: string, peers: IManager): API {
         var instance = new Connection(address, peers);
         return instance.getApi();
     }
@@ -30,7 +47,7 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
         return {
             address: this.address,
             on: this.emitter.on.bind(this.emitter),
-            removeListener: this.emitter.removeListener.bind(this.emitter)
+            off: this.emitter.removeListener.bind(this.emitter)
         };
     }
 
