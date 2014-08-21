@@ -13,14 +13,15 @@ export interface Callbacks {
     readRelayedMessage(address: string, message: string): void;
 }
 
-export var PROTOCOL_NAME = "overelay";
+export var PROTOCOL_NAME = "p";
 
 export class Protocol {
     MESSAGE_TYPE = {
+        DIRECT: 0,
         PEER_CONNECTED: 1,
         PEER_DICONNECTED: 2,
-        RELAY: 3,
-        RELAYED: 4,
+        RELAY: 6,
+        RELAYED: 7,
     };
 
     private callbacks: Callbacks;
@@ -30,6 +31,7 @@ export class Protocol {
     }
 
     public readMessage(message: any): void {
+        console.log(message);
         var MESSAGE_TYPE = this.MESSAGE_TYPE;
         var callbacks = this.callbacks;
         var messageType = message[0];
@@ -50,10 +52,18 @@ export class Protocol {
             case MESSAGE_TYPE.RELAYED:
                 callbacks.readRelayedMessage(message[1], message[2]);
                 break;
-            
+
             default:
                 throw new Error('Unknown message type: ' + messageType);
         }
+    }
+
+    writeDirect(content: string): void {
+        var message = [
+            this.MESSAGE_TYPE.DIRECT,
+            content,
+        ];
+        this.callbacks.writeMessage(message);
     }
 
     writeConnected(address: string): void {
