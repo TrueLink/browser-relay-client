@@ -2,3 +2,5 @@ obj/
 bin/
 src/**/*.map
 src/**/*.js
+node_modules/
+temp/
