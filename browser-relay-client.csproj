@@ -17,17 +17,24 @@
     <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="app.css" />
-    <Content Include="index.html" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="app.ts" />
+    <TypeScriptCompile Include="src\connection-manager.ts" />
+    <TypeScriptCompile Include="src\connection.ts" />
+    <TypeScriptCompile Include="src\hub.ts" />
+    <TypeScriptCompile Include="src\websocket-connection.ts" />
+    <TypeScriptCompile Include="src\protocol.ts" />
+    <TypeScriptCompile Include="typings\browserify\browserify.d.ts" />
+    <TypeScriptCompile Include="typings\node\node.d.ts" />
+    <TypeScriptCompile Include="typings\tsd.d.ts" />
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
     <Content Include="LICENSE" />
     <Content Include="README.md" />
+    <Content Include="package.json" />
+    <Content Include="tsd.json" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
