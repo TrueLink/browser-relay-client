@@ -1,4 +1,4 @@
-﻿import connectionManager = require("connection-manager");
+﻿import connectionManager = require("./connection-manager");
 import connection = require("./connection");
 import protocol = require("./protocol");
 
