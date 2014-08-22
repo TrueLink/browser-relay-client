@@ -10,7 +10,7 @@ class WebSocketConnection extends connection.Connection {
     private webSocket: WebSocket;
 
     constructor(address: string, peers: connection.IManager, webSocket: WebSocket) {
-        super(address, peers);
+        super(this, address, peers);
 
         this.webSocket = webSocket;
 
@@ -18,6 +18,10 @@ class WebSocketConnection extends connection.Connection {
         this.webSocket.addEventListener('open', this.wsOpenHandler.bind(this));
         this.webSocket.addEventListener('error', this.wsErrorHandler.bind(this));
         this.webSocket.addEventListener('close', this.wsCloseHandler.bind(this));
+    }
+
+    public writeMessageData(data: string) {
+        this.webSocket.send(data);
     }
 
     private wsMessageHandler(message: MessageEvent) {

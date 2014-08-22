@@ -21,7 +21,7 @@ export interface IManager {
 }
 
 export interface Callbacks {
-    writeMessage(message: any): void;
+    writeMessageData(message: any): void;
 }
 
 export class Connection extends protocol.Protocol implements protocol.Callbacks {
@@ -29,18 +29,16 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
     private peers: IManager;
     public emitter: EventEmitter;
 
+    private transport: Callbacks;
+
     static EventEmitter: EventEmitterFactory;
    
-    constructor(address: string, peers: IManager) {
+    constructor(transport: Callbacks, address: string, peers: IManager) {
         super(this)
         this.address = address;
         this.peers = peers;
         this.emitter = new Connection.EventEmitter();
-    }
-
-    static create(address: string, peers: IManager): API {
-        var instance = new Connection(address, peers);
-        return instance.getApi();
+        this.transport = transport;
     }
 
     public getApi(): API {
@@ -57,8 +55,8 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
     }
 
     public writeMessage(message: any): void {
-        var stringified = JSON.stringify(message.getData());
-        this.connection.send(stringified);
+        var data = JSON.stringify(message);
+        this.transport.writeMessageData(data);
     }
 
     public readPeerConnectedMessage(destination: string): void {
