@@ -2,7 +2,7 @@
   "name": "browser-relay-client",
   "version": "0.0.1",
   "description": "Single client representation for peer-to-peer network",
-  "main": "",
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/overelay/browser-relay-client.git"
