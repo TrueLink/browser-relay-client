@@ -1,5 +1,4 @@
-﻿import connectionManager = require("./connection-manager");
-import connection = require("./connection");
+﻿import connection = require("./connection");
 import protocol = require("./protocol");
 
 interface API extends connection.API {
@@ -9,7 +8,7 @@ class WebSocketConnection extends connection.Connection {
 
     private webSocket: WebSocket;
 
-    constructor(address: string, peers: connection.IManager, webSocket: WebSocket) {
+    constructor(address: string, peers: connection.ConnectionsManager, webSocket: WebSocket) {
         super(this, address, peers);
 
         this.webSocket = webSocket;
@@ -45,7 +44,7 @@ class WebSocketConnection extends connection.Connection {
         return api;
     }
 
-    static create(address: string, peers: connection.IManager, options: {
+    static create(address: string, peers: connection.ConnectionsManager, options: {
         PROTOCOL_NAME?: string;
     } = {}): API {
         var PROTOCOL_NAME = options.PROTOCOL_NAME || protocol.PROTOCOL_NAME;

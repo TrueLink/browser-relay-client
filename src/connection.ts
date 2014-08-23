@@ -16,7 +16,7 @@ export interface API {
     off(event: string, listener: Function): EventEmitter;
 }
 
-export interface IManager {
+export interface ConnectionsManager {
     get(destination: string): API;
 }
 
@@ -26,14 +26,14 @@ export interface Callbacks {
 
 export class Connection extends protocol.Protocol implements protocol.Callbacks {
     private address: string;
-    private peers: IManager;
+    private peers: ConnectionsManager;
     public emitter: EventEmitter;
 
     private transport: Callbacks;
 
     static EventEmitter: EventEmitterFactory;
    
-    constructor(transport: Callbacks, address: string, peers: IManager) {
+    constructor(transport: Callbacks, address: string, peers: ConnectionsManager) {
         super(this)
         this.address = address;
         this.peers = peers;
