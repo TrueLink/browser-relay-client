@@ -4,5 +4,12 @@
   "ref": "master",
   "path": "typings",
   "bundle": "typings/tsd.d.ts",
-  "installed": {}
+  "installed": {
+    "browserify/browserify.d.ts": {
+      "commit": "807ba77ee6af4e587618535b0d820f03e3353823"
+    },
+    "node/node.d.ts": {
+      "commit": "807ba77ee6af4e587618535b0d820f03e3353823"
+    }
+  }
 }
