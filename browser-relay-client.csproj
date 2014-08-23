@@ -22,6 +22,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="src\connection-manager.ts" />
     <TypeScriptCompile Include="src\connection.ts" />
+    <TypeScriptCompile Include="src\index.ts" />
     <TypeScriptCompile Include="src\hub.ts" />
     <TypeScriptCompile Include="src\websocket-connection.ts" />
     <TypeScriptCompile Include="src\protocol.ts" />
