@@ -1,5 +1,6 @@
 ﻿import connection = require("./connection");
 import protocol = require("./protocol");
+import event = require("./event");
 
 interface API extends connection.API {
 }
@@ -8,8 +9,16 @@ class WebSocketConnection extends connection.Connection {
 
     private webSocket: WebSocket;
 
+    public onOpen: event.Event<Event>;
+    public onError: event.Event<ErrorEvent>;
+    public onClose: event.Event<CloseEvent>;
+
     constructor(address: string, peers: connection.ConnectionsManager, webSocket: WebSocket) {
         super(this, address, peers);
+
+        this.onOpen = new event.Event<Event>();
+        this.onError = new event.Event<ErrorEvent>();
+        this.onClose = new event.Event<CloseEvent>();
 
         this.webSocket = webSocket;
 
@@ -28,15 +37,15 @@ class WebSocketConnection extends connection.Connection {
     }
 
     private wsOpenHandler(event: Event) {
-        this.emitter.emit('open', event);
+        this.onOpen.emit(event);
     }
 
     private wsErrorHandler(event: ErrorEvent) {
-        this.emitter.emit('error', event);
+        this.onError.emit(event);
     }
 
     private wsCloseHandler(event: CloseEvent): void {
-        this.emitter.emit('close', event);
+        this.onClose.emit(event);
     }
 
     public getApi(): API {

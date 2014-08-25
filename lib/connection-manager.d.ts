@@ -1,21 +1,12 @@
-﻿export interface EventEmitter {
-    on(event: string, listener: Function): EventEmitter;
-    removeListener(event: string, listener: Function): EventEmitter;
-    emit(event: string, ...args: any[]): boolean;
-}
-export interface EventEmitterFactory {
-    new(): EventEmitter;
-}
+﻿import event = require("./event");
 export interface IConnection {
     address: string;
 }
 export declare class ConnectionManager<T extends IConnection> {
     private connectionMap;
     private connectionList;
-    private emitter;
-    static EventEmitter: EventEmitterFactory;
-    public on(event: string, listener: (conn: T) => void): void;
-    public off(event: string, listener: (conn: T) => void): void;
+    public onAdded: event.Event<T>;
+    public onRemoved: event.Event<T>;
     constructor();
     public get(): T[];
     public get(address: string): T;

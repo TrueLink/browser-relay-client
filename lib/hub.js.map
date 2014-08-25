@@ -1,1 +1,1 @@
-{"version":3,"file":"hub.js","sourceRoot":"","sources":["../src/hub.ts"],"names":[],"mappings":"AAAA,cAAc;AACd,yDAAyD;AACzD,QAAQ;AACR,IAAI"}
+{"version":3,"file":"hub.js","sourceRoot":"","sources":["../src/hub.ts"],"names":["Hub","Hub.constructor"],"mappings":"AAAA,uDAA2D;;AAS3D;IAGIA;QACIC,IAAIA,CAACA,KAAKA,GAAGA,IAAIA,iBAAiBA,CAACA,iBAAiBA,CAAiBA,CAACA;IAE1EA,CAACA;IACLD,WAACA;AAADA,CAACA,IAAA;AA6DC;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EAAA"}

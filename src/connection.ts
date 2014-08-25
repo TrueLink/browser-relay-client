@@ -1,19 +1,7 @@
 ﻿import protocol = require('./protocol');
 
-export interface EventEmitter {
-    on(event: string, listener: Function): EventEmitter;
-    removeListener(event: string, listener: Function): EventEmitter;
-    emit(event: string, ...args: any[]): boolean;
-}
-
-export interface EventEmitterFactory {
-    new (): EventEmitter;
-}
-
 export interface API {
     address: string;
-    on(event: string, listener: Function): EventEmitter;
-    off(event: string, listener: Function): EventEmitter;
 }
 
 export interface ConnectionsManager {
@@ -27,25 +15,19 @@ export interface Callbacks {
 export class Connection extends protocol.Protocol implements protocol.Callbacks {
     private address: string;
     private peers: ConnectionsManager;
-    public emitter: EventEmitter;
 
     private transport: Callbacks;
-
-    static EventEmitter: EventEmitterFactory;
    
     constructor(transport: Callbacks, address: string, peers: ConnectionsManager) {
         super(this)
         this.address = address;
         this.peers = peers;
-        this.emitter = new Connection.EventEmitter();
         this.transport = transport;
     }
 
     public getApi(): API {
         return {
             address: this.address,
-            on: this.emitter.on.bind(this.emitter),
-            off: this.emitter.removeListener.bind(this.emitter)
         };
     }
 
