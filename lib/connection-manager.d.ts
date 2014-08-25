@@ -5,8 +5,8 @@ export interface IConnection {
 export declare class ConnectionManager<T extends IConnection> {
     private connectionMap;
     private connectionList;
-    public onAdded: event.Event<T>;
-    public onRemoved: event.Event<T>;
+    public onAdd: event.Event<T>;
+    public onRemove: event.Event<T>;
     constructor();
     public get(): T[];
     public get(address: string): T;

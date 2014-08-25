@@ -13,12 +13,12 @@ export class ConnectionManager<T extends IConnection> {
     private connectionMap: { [address: string]: T; } = {};
     private connectionList: Array<T> = [];
 
-    public onAdded: event.Event<T>;
-    public onRemoved: event.Event<T>;
+    public onAdd: event.Event<T>;
+    public onRemove: event.Event<T>;
 
     constructor() {
-        this.onAdded = new event.Event<T>();
-        this.onRemoved = new event.Event<T>();
+        this.onAdd = new event.Event<T>();
+        this.onRemove = new event.Event<T>();
     }
 
     public get(): Array<T>;
@@ -38,7 +38,7 @@ export class ConnectionManager<T extends IConnection> {
         this.connectionMap[address] = connection;
         this.connectionList.push(connection);
 
-        this.onAdded.emit(connection);
+        this.onAdd.emit(connection);
         return true;
     }
 
@@ -53,7 +53,7 @@ export class ConnectionManager<T extends IConnection> {
         var index = this.connectionList.indexOf(connection);
         this.connectionList.splice(index, 1);
 
-        this.onRemoved.emit(connection);
+        this.onRemove.emit(connection);
         return true;
     }
 }
