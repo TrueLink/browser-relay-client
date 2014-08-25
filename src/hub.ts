@@ -1,78 +1,90 @@
-﻿import connectionManager = require("./connection-manager");
-import connection = require("./connection");
+﻿import connection = require("./connection");
+import event = require("./event");
+import connectionManager = require("./connection-manager");
+import wsConn = require("./websocket-connection");
 
 export interface ConnectionManager extends connectionManager.ConnectionManager<connection.API> {
 }
 
 export interface API {
+    connections: connection.API[];
+    onConnected: event.Event<connection.API>;
+    onDisconnected: event.Event<connection.API>;
+}
+
+export class APIImpl implements API {
+    private _manager: ConnectionManager;
+
+    private _onConnected: event.Event<connection.API>;
+    private _onDisconnected: event.Event<connection.API>;
+
+    constructor(options: {
+        manager: ConnectionManager;
+        onConnected: event.Event<connection.API>;
+        onDisconnected: event.Event<connection.API>;
+    }) {
+        this._manager = options.manager;
+        this._onConnected = options.onConnected;
+        this._onDisconnected = options.onDisconnected;
+    }
+
+    public get connections(): connection.API[] {
+        return this._manager.get();
+    }
+
+    public get onConnected(): event.Event<connection.API> {
+        return this._onConnected;
+    }
+
+    public get onDisconnected(): event.Event<connection.API> {
+        return this._onDisconnected;
+    }
 }
 
 class Hub {
     private peers: ConnectionManager;
 
-    constructor() {
-        this.peers = new connectionManager.ConnectionManager<connection.API>();
+    private onConnected: event.Event<connection.API>;
+    private onDisconnected: event.Event<connection.API>;
 
+    constructor(peers: ConnectionManager) {
+        this.peers = peers; 
+
+        this.onConnected = new event.Event<connection.API>();
+        this.onDisconnected = new event.Event<connection.API>();
+
+        this.peers.onAdd.on((peer) => {
+            this.onConnected.emit(peer);
+        });
+
+        this.peers.onRemove.on((peer) => {
+            this.onDisconnected.emit(peer);
+        });
+    }
+
+    private getApi(): API {
+        return new APIImpl({
+            manager: this.peers,
+            onConnected: this.onConnected,
+            onDisconnected: this.onDisconnected,
+        });
+    }
+
+    static create(options): API {
+        var manager = new connectionManager.ConnectionManager<connection.API>();
+
+        var hub = new Hub(manager);
+
+        return hub.getApi();
+    }
+
+    public connect(address: string): wsConn.API {
+        var peer = wsConn.WebSocketConnection.create(address, this.peers);
+
+        peer.onClose.on((event) => {
+            this.peers.remove(peer);
+        });
+
+        return peer;
     }
 }
-/*
-var Emitter = require('events').EventEmitter,
-    ConnectionManager = require('./ConnectionManager.js'),
-    WebSocketConnection = require('./WebSocketConnection.js'),
-    WebRTCConnection = require('./WebRTCConnection.js'),
-    its = require('its');
-
-function P(emitter, connectionManager, options) {
-    its.defined(emitter);
-    its.defined(connectionManager);
-
-    this.emitter = emitter;
-    this.peers = connectionManager;
-
-    this.peers.onAdd = function (peer) {
-        emitter.emit('connection', peer);
-    };
-
-    this.peers.onRemove = function (peer) {
-        emitter.emit('disconnection', peer);
-    };
-
-    if (options && options.firewall) this.firewall = options.firewall;
-}
-
-P.create = function (options) {
-    var emitter = new Emitter(),
-        connectionManager = new ConnectionManager();
-
-    return new P(emitter, connectionManager, options);
-};
-
-P.prototype.getPeers = function () {
-    return this.peers.get();
-};
-
-P.prototype.connect = function (address) {
-    its.string(address);
-
-    var peers = this.peers,
-        peer = WebSocketConnection.create(address, this.peers, { firewall: this.firewall });
-
-    peers.add(peer);
-
-    peer.on('close', function () {
-        peers.remove(peer);
-    });
-
-    return peer;
-};
-
-P.prototype.on = function () {
-    this.emitter.on.apply(this.emitter, arguments);
-    return this;
-};
-
-P.prototype.removeListener = function () {
-    this.emitter.removeListener.apply(this.emitter, arguments);
-    return this;
-};
-*/

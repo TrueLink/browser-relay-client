@@ -2,10 +2,13 @@
 import protocol = require("./protocol");
 import event = require("./event");
 
-interface API extends connection.API {
+export interface API extends connection.API {
+    onOpen: event.Event<Event>;
+    onError: event.Event<ErrorEvent>;
+    onClose: event.Event<CloseEvent>;
 }
 
-class WebSocketConnection extends connection.Connection {
+export class WebSocketConnection extends connection.Connection {
 
     private webSocket: WebSocket;
 
@@ -50,6 +53,9 @@ class WebSocketConnection extends connection.Connection {
 
     public getApi(): API {
         var api = <API>super.getApi();
+        api.onOpen = this.onOpen;
+        api.onError = this.onError;
+        api.onClose = this.onClose;
         return api;
     }
 
