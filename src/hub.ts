@@ -7,6 +7,7 @@ export interface ConnectionManager extends connectionManager.ConnectionManager<c
 }
 
 export interface API {
+    connect(address: string): wsConn.API;
     connections: connection.API[];
     onConnected: event.Event<connection.API>;
     onDisconnected: event.Event<connection.API>;
@@ -17,15 +18,22 @@ export class APIImpl implements API {
 
     private _onConnected: event.Event<connection.API>;
     private _onDisconnected: event.Event<connection.API>;
+    private _connect: (address: string) => wsConn.API;
 
     constructor(options: {
         manager: ConnectionManager;
+        connect: (address: string) => wsConn.API;
         onConnected: event.Event<connection.API>;
         onDisconnected: event.Event<connection.API>;
     }) {
         this._manager = options.manager;
         this._onConnected = options.onConnected;
         this._onDisconnected = options.onDisconnected;
+        this._connect = options.connect;
+    }
+
+    public connect(address: string): wsConn.API {
+        return this._connect(address);
     }
 
     public get connections(): connection.API[] {
@@ -41,7 +49,7 @@ export class APIImpl implements API {
     }
 }
 
-class Hub {
+export class Hub {
     private peers: ConnectionManager;
 
     private onConnected: event.Event<connection.API>;
@@ -75,6 +83,7 @@ class Hub {
 
     private getApi(): API {
         return new APIImpl({
+            connect: this.connect.bind(this),
             manager: this.peers,
             onConnected: this.onConnected,
             onDisconnected: this.onDisconnected,

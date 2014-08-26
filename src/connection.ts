@@ -24,19 +24,20 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
     public getApi(): API {
         return {
             address: this.address,
-            ///connected: this.writeConnected.bind(this),
-            connected: this.writeDirect.bind(this),
+            connected: this.writeConnected.bind(this),
             disconnected: this.writeDisconnected.bind(this),
         };
     }
 
     public readMessageData(data: string): void {
         var message = JSON.parse(data);
+        console.log("<--", message);
         this.readMessage(message);
     }
 
     public writeMessage(message: any): void {
         var data = JSON.stringify(message);
+        console.log("-->", data);
         this.transport.writeMessageData(data);
     }
 

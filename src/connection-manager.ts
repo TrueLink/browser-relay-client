@@ -44,7 +44,6 @@ export class ConnectionManager<T extends IConnection> {
 
     public remove(connection: T) {
         var address = connection.address;
-
         var mappedConnection = this.connectionMap[address];
         if (!mappedConnection || mappedConnection !== connection) return false;
 

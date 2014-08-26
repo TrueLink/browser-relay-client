@@ -17,6 +17,9 @@ module.exports = function (grunt) {
             lib: [
                 'lib/**/*'
             ],
+            dist: [
+                'dist/**/*'
+            ],
         },
         ts: {
             build: {
@@ -39,7 +42,7 @@ module.exports = function (grunt) {
         },
         bundle: {
             index: {
-                main: './tmp/index.js',
+                main: './lib/app.js',
                 bundle: './dist/index.js'
             }
         }
@@ -51,7 +54,7 @@ module.exports = function (grunt) {
     grunt.registerTask('build', [
         'clean',
         'ts:build',
-        //'bundle:index'
+        'bundle:index'
     ]);
 
     // custom browserify multi-task
@@ -66,12 +69,12 @@ module.exports = function (grunt) {
         grunt.file.mkdir(path.dirname(bundleFile));
 
         //setup stream
-        var bundle = new browserify();
+        var bundle = new browserify({
+            debug: true
+        });
         bundle.add(mainFile);
 
-        var stream = bundle.bundle({
-            debug: true
-        }, function (err) {
+        var stream = bundle.bundle(function (err) {
             if (err) {
                 grunt.log.error(mainFile);
                 console.log(err);
