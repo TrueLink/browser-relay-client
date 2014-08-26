@@ -25,30 +25,25 @@ export class WebSocketConnection extends connection.Connection {
 
         this.webSocket = webSocket;
 
-        this.webSocket.addEventListener('message', this.wsMessageHandler.bind(this));
-        this.webSocket.addEventListener('open', this.wsOpenHandler.bind(this));
-        this.webSocket.addEventListener('error', this.wsErrorHandler.bind(this));
-        this.webSocket.addEventListener('close', this.wsCloseHandler.bind(this));
+        this.webSocket.addEventListener('message', (event) => {
+            this.readMessageData(event.data);
+        });
+
+        this.webSocket.addEventListener('open', (event) => {
+            this.onOpen.emit(event);
+        });
+
+        this.webSocket.addEventListener('error', (event) => {
+            this.onError.emit(event);
+        });
+
+        this.webSocket.addEventListener('close', (event) => {
+            this.onClose.emit(event);
+        });
     }
 
     public writeMessageData(data: string) {
         this.webSocket.send(data);
-    }
-
-    private wsMessageHandler(message: MessageEvent) {
-        this.readMessageData(message.data);
-    }
-
-    private wsOpenHandler(event: Event) {
-        this.onOpen.emit(event);
-    }
-
-    private wsErrorHandler(event: ErrorEvent) {
-        this.onError.emit(event);
-    }
-
-    private wsCloseHandler(event: CloseEvent): void {
-        this.onClose.emit(event);
     }
 
     public getApi(): API {

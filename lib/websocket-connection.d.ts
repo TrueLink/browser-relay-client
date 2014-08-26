@@ -12,10 +12,6 @@ export declare class WebSocketConnection extends connection.Connection {
     public onClose: event.Event<CloseEvent>;
     constructor(address: string, webSocket: WebSocket);
     public writeMessageData(data: string): void;
-    private wsMessageHandler(message);
-    private wsOpenHandler(event);
-    private wsErrorHandler(event);
-    private wsCloseHandler(event);
     public getApi(): API;
     static create(address: string, options?: {
         PROTOCOL_NAME?: string;
