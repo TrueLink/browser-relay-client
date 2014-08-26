@@ -56,4 +56,8 @@ export class ConnectionManager<T extends IConnection> {
         this.onRemove.emit(connection);
         return true;
     }
+
+    public get length(): number {
+        return this.connectionList.length;
+    }
 }

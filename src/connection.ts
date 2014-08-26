@@ -2,10 +2,8 @@
 
 export interface API {
     address: string;
-}
-
-export interface ConnectionsManager {
-    get(destination: string): API;
+    connected(remoteId: string): void;
+    disconnected(remoteId: string): void;
 }
 
 export interface Callbacks {
@@ -14,20 +12,21 @@ export interface Callbacks {
 
 export class Connection extends protocol.Protocol implements protocol.Callbacks {
     private address: string;
-    private peers: ConnectionsManager;
 
     private transport: Callbacks;
    
-    constructor(transport: Callbacks, address: string, peers: ConnectionsManager) {
+    constructor(transport: Callbacks, address: string) {
         super(this)
         this.address = address;
-        this.peers = peers;
         this.transport = transport;
     }
 
     public getApi(): API {
         return {
             address: this.address,
+            ///connected: this.writeConnected.bind(this),
+            connected: this.writeDirect.bind(this),
+            disconnected: this.writeDisconnected.bind(this),
         };
     }
 

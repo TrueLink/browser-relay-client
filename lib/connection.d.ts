@@ -1,18 +1,16 @@
 ﻿import protocol = require('./protocol');
 export interface API {
     address: string;
-}
-export interface ConnectionsManager {
-    get(destination: string): API;
+    connected(remoteId: string): void;
+    disconnected(remoteId: string): void;
 }
 export interface Callbacks {
     writeMessageData(message: any): void;
 }
 export declare class Connection extends protocol.Protocol implements protocol.Callbacks {
     private address;
-    private peers;
     private transport;
-    constructor(transport: Callbacks, address: string, peers: ConnectionsManager);
+    constructor(transport: Callbacks, address: string);
     public getApi(): API;
     public readMessageData(data: string): void;
     public writeMessage(message: any): void;

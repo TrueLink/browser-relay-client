@@ -53,12 +53,23 @@ class Hub {
         this.onConnected = new event.Event<connection.API>();
         this.onDisconnected = new event.Event<connection.API>();
 
-        this.peers.onAdd.on((peer) => {
-            this.onConnected.emit(peer);
+        this.peers.onAdd.on((connection) => {
+            this.onConnected.emit(connection);
+            console.log('peer connected: ' + connection.address + " (" + this.peers.length + ")");
+            this.peers.get().forEach(function (other) {
+                if (other === connection) return;
+                connection.connected(other.address);
+                other.connected(connection.address);
+            });
         });
 
-        this.peers.onRemove.on((peer) => {
-            this.onDisconnected.emit(peer);
+        this.peers.onRemove.on((connection) => {
+            this.onDisconnected.emit(connection);
+            console.log('peer disconnected: ' + connection.address + " (" + this.peers.length + ")");
+            this.peers.get().forEach(function (other) {
+                if (other === connection) return;
+                other.disconnected(connection.address);
+            });
         });
     }
 
@@ -70,7 +81,8 @@ class Hub {
         });
     }
 
-    static create(options): API {
+    static create(options: {
+    } = {}): API {
         var manager = new connectionManager.ConnectionManager<connection.API>();
 
         var hub = new Hub(manager);

@@ -31,7 +31,6 @@ export class Protocol {
     }
 
     public readMessage(message: any): void {
-        console.log(message);
         var MESSAGE_TYPE = this.MESSAGE_TYPE;
         var callbacks = this.callbacks;
         var messageType = message[0];

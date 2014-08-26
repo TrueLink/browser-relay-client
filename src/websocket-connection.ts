@@ -16,8 +16,8 @@ export class WebSocketConnection extends connection.Connection {
     public onError: event.Event<ErrorEvent>;
     public onClose: event.Event<CloseEvent>;
 
-    constructor(address: string, peers: connection.ConnectionsManager, webSocket: WebSocket) {
-        super(this, address, peers);
+    constructor(address: string, webSocket: WebSocket) {
+        super(this, address);
 
         this.onOpen = new event.Event<Event>();
         this.onError = new event.Event<ErrorEvent>();
@@ -59,12 +59,12 @@ export class WebSocketConnection extends connection.Connection {
         return api;
     }
 
-    static create(address: string, peers: connection.ConnectionsManager, options: {
+    static create(address: string, options: {
         PROTOCOL_NAME?: string;
     } = {}): API {
         var PROTOCOL_NAME = options.PROTOCOL_NAME || protocol.PROTOCOL_NAME;
         var webSocket = new WebSocket(address, PROTOCOL_NAME);
-        var connection = new WebSocketConnection(address, peers, webSocket);
+        var connection = new WebSocketConnection(address, webSocket);
         return connection.getApi();
     }
 }

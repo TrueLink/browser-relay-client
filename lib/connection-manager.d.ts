@@ -12,4 +12,5 @@ export declare class ConnectionManager<T extends IConnection> {
     public get(address: string): T;
     public add(connection: T): boolean;
     public remove(connection: T): boolean;
+    public length : number;
 }
