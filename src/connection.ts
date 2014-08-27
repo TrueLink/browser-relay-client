@@ -2,8 +2,9 @@
 
 export interface API {
     address: string;
-    connected(remoteId: string): void;
-    disconnected(remoteId: string): void;
+    close(): void;
+    connected(remoteAddr: string): void;
+    disconnected(remoteAddr: string): void;
 }
 
 export interface Callbacks {
@@ -24,6 +25,7 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
     public getApi(): API {
         return {
             address: this.address,
+            close: () => { throw new Error("AbstractMethod"); },
             connected: this.writeConnected.bind(this),
             disconnected: this.writeDisconnected.bind(this),
         };

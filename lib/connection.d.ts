@@ -1,8 +1,9 @@
 ﻿import protocol = require('./protocol');
 export interface API {
     address: string;
-    connected(remoteId: string): void;
-    disconnected(remoteId: string): void;
+    close(): void;
+    connected(remoteAddr: string): void;
+    disconnected(remoteAddr: string): void;
 }
 export interface Callbacks {
     writeMessageData(message: any): void;

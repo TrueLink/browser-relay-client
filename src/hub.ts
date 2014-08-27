@@ -8,6 +8,7 @@ export interface ConnectionManager extends connectionManager.ConnectionManager<c
 
 export interface API {
     connect(address: string): wsConn.API;
+    disconnect(address: string): void;
     connections: connection.API[];
     onConnected: event.Event<connection.API>;
     onDisconnected: event.Event<connection.API>;
@@ -19,10 +20,12 @@ export class APIImpl implements API {
     private _onConnected: event.Event<connection.API>;
     private _onDisconnected: event.Event<connection.API>;
     private _connect: (address: string) => wsConn.API;
+    private _disconnect: (address: string) => void;
 
     constructor(options: {
         manager: ConnectionManager;
         connect: (address: string) => wsConn.API;
+        disconnect: (address: string) => void;
         onConnected: event.Event<connection.API>;
         onDisconnected: event.Event<connection.API>;
     }) {
@@ -30,10 +33,15 @@ export class APIImpl implements API {
         this._onConnected = options.onConnected;
         this._onDisconnected = options.onDisconnected;
         this._connect = options.connect;
+        this._disconnect = options.disconnect;
     }
 
     public connect(address: string): wsConn.API {
         return this._connect(address);
+    }
+
+    public disconnect(address: string): void {
+        this._disconnect(address);
     }
 
     public get connections(): connection.API[] {
@@ -84,6 +92,7 @@ export class Hub {
     private getApi(): API {
         return new APIImpl({
             connect: this.connect.bind(this),
+            disconnect: this.disconnect.bind(this),
             manager: this.peers,
             onConnected: this.onConnected,
             onDisconnected: this.onDisconnected,
@@ -100,12 +109,23 @@ export class Hub {
     }
 
     public connect(address: string): wsConn.API {
-        var peer = wsConn.WebSocketConnection.create(address, this.peers);
+        var peer = wsConn.WebSocketConnection.create(address);
+
+        this.peers.add(peer);
 
         peer.onClose.on((event) => {
             this.peers.remove(peer);
         });
 
         return peer;
+    }
+
+    public isConnected(address: string): boolean {
+        return this.peers.get(address) !== undefined
+    }
+
+    public disconnect(address: string): void {
+        var peer = this.peers.get(address);
+        peer.close();
     }
 }

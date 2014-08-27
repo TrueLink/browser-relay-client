@@ -51,7 +51,12 @@ export class WebSocketConnection extends connection.Connection {
         api.onOpen = this.onOpen;
         api.onError = this.onError;
         api.onClose = this.onClose;
+        api.close = this.close.bind(this);
         return api;
+    }
+
+    public close(): void {
+        this.webSocket.close();
     }
 
     static create(address: string, options: {

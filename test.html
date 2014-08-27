@@ -3,9 +3,37 @@
 <head>
     <title>Ping</title>
     <script src="dist/index.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/zepto/1.1.4/zepto.js"></script>
+
     <script>
+        $(function() {
+            $("form.ramp-conn").each(function () {
+                var addr = $(this.elements["addr"]).val();
+                $(this.elements["use"]).change(function() {
+                    if(this.checked) {
+                        window.hub.connect(addr);
+                    } else {
+                        window.hub.disconnect(addr);
+                    }                    
+                });
+            });
+        });
     </script>
 </head>
 <body>
+    <form id="ramp1" class="ramp-conn">
+        <input type="text" name="addr" value="ws://127.0.0.1:20500/">
+        <input name="use" type="checkbox">
+    </form>
+
+    <form id="ramp2" class="ramp-conn">
+        <input type="text" name="addr" value="ws://127.0.0.1:20501/">
+        <input name="use" type="checkbox">
+    </form>
+
+    <form id="ramp3" class="ramp-conn">
+        <input type="text" name="addr" value="ws://127.0.0.1:20502/">
+        <input name="use" type="checkbox">
+    </form>
 </body>
 </html>

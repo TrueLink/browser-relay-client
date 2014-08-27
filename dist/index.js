@@ -1,13 +1,11 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var hub = require("./hub");
 
-var serverAddress = 'ws://127.0.0.1:20500/';
-
 var instance = hub.Hub.create();
 
-console.log(instance);
+var W = window;
 
-instance.connect(serverAddress);
+W.hub = instance;
 //# sourceMappingURL=app.js.map
 
 },{"./hub":5}],2:[function(require,module,exports){
@@ -90,6 +88,9 @@ var Connection = (function (_super) {
     Connection.prototype.getApi = function () {
         return {
             address: this.address,
+            close: function () {
+                throw new Error("AbstractMethod");
+            },
             connected: this.writeConnected.bind(this),
             disconnected: this.writeDisconnected.bind(this)
         };
@@ -203,9 +204,14 @@ var APIImpl = (function () {
         this._onConnected = options.onConnected;
         this._onDisconnected = options.onDisconnected;
         this._connect = options.connect;
+        this._disconnect = options.disconnect;
     }
     APIImpl.prototype.connect = function (address) {
         return this._connect(address);
+    };
+
+    APIImpl.prototype.disconnect = function (address) {
+        this._disconnect(address);
     };
 
     Object.defineProperty(APIImpl.prototype, "connections", {
@@ -267,6 +273,7 @@ var Hub = (function () {
     Hub.prototype.getApi = function () {
         return new APIImpl({
             connect: this.connect.bind(this),
+            disconnect: this.disconnect.bind(this),
             manager: this.peers,
             onConnected: this.onConnected,
             onDisconnected: this.onDisconnected
@@ -284,13 +291,24 @@ var Hub = (function () {
 
     Hub.prototype.connect = function (address) {
         var _this = this;
-        var peer = wsConn.WebSocketConnection.create(address, this.peers);
+        var peer = wsConn.WebSocketConnection.create(address);
+
+        this.peers.add(peer);
 
         peer.onClose.on(function (event) {
             _this.peers.remove(peer);
         });
 
         return peer;
+    };
+
+    Hub.prototype.isConnected = function (address) {
+        return this.peers.get(address) !== undefined;
+    };
+
+    Hub.prototype.disconnect = function (address) {
+        var peer = this.peers.get(address);
+        peer.close();
     };
     return Hub;
 })();
@@ -437,7 +455,12 @@ var WebSocketConnection = (function (_super) {
         api.onOpen = this.onOpen;
         api.onError = this.onError;
         api.onClose = this.onClose;
+        api.close = this.close.bind(this);
         return api;
+    };
+
+    WebSocketConnection.prototype.close = function () {
+        this.webSocket.close();
     };
 
     WebSocketConnection.create = function (address, options) {

@@ -13,6 +13,7 @@ export declare class WebSocketConnection extends connection.Connection {
     constructor(address: string, webSocket: WebSocket);
     public writeMessageData(data: string): void;
     public getApi(): API;
+    public close(): void;
     static create(address: string, options?: {
         PROTOCOL_NAME?: string;
     }): API;
