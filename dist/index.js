@@ -77,6 +77,8 @@ var __extends = this.__extends || function (d, b) {
     d.prototype = new __();
 };
 var protocol = require('./protocol');
+var event = require("./event");
+
 
 var Connection = (function (_super) {
     __extends(Connection, _super);
@@ -84,15 +86,23 @@ var Connection = (function (_super) {
         _super.call(this, this);
         this.address = address;
         this.transport = transport;
+
+        this.onIdentified = new event.Event();
+        this.onConnected = new event.Event();
+        this.onDisconnected = new event.Event();
     }
     Connection.prototype.getApi = function () {
         return {
+            id: this.id,
             address: this.address,
             close: function () {
                 throw new Error("AbstractMethod");
             },
             connected: this.writeConnected.bind(this),
-            disconnected: this.writeDisconnected.bind(this)
+            disconnected: this.writeDisconnected.bind(this),
+            onIdentified: this.onIdentified,
+            onConnected: this.onConnected,
+            onDisconnected: this.onDisconnected
         };
     };
 
@@ -108,17 +118,25 @@ var Connection = (function (_super) {
         this.transport.writeMessageData(data);
     };
 
-    Connection.prototype.readPeerConnectedMessage = function (destination) {
+    Connection.prototype.readPeerConnectedMessage = function (id) {
+        this.onConnected.emit(id);
     };
 
-    Connection.prototype.readPeerDisconnectedMessage = function (destination) {
+    Connection.prototype.readPeerDisconnectedMessage = function (id) {
+        this.onDisconnected.emit(id);
+    };
+
+    Connection.prototype.readIdentificationMessage = function (id) {
+        this.id = id;
+        this.onIdentified.emit(id);
     };
 
     Connection.prototype.readRelayMessage = function (destination, message) {
-        throw new Error("client can't relay messages at the moment");
+        console.warn("client can't relay messages at the moment");
     };
 
     Connection.prototype.readRelayedMessage = function (destination, message) {
+        console.warn("client process relayed message");
         //    var MESSAGE_TYPE = this.MESSAGE_TYPE,
         //        messageType = message[0];
         //    switch (messageType) {
@@ -143,7 +161,7 @@ var Connection = (function (_super) {
 exports.Connection = Connection;
 //# sourceMappingURL=connection.js.map
 
-},{"./protocol":6}],4:[function(require,module,exports){
+},{"./event":4,"./protocol":6}],4:[function(require,module,exports){
 var Event = (function () {
     function Event(context) {
         this._handlers = [];
@@ -293,7 +311,9 @@ var Hub = (function () {
         var _this = this;
         var peer = wsConn.WebSocketConnection.create(address);
 
-        this.peers.add(peer);
+        peer.onOpen.on(function () {
+            _this.peers.add(peer);
+        });
 
         peer.onClose.on(function (event) {
             _this.peers.remove(peer);
@@ -329,6 +349,7 @@ var Protocol = (function () {
             DIRECT: 0,
             PEER_CONNECTED: 1,
             PEER_DICONNECTED: 2,
+            IDENTIFY: 3,
             RELAY: 6,
             RELAYED: 7
         };
@@ -346,6 +367,10 @@ var Protocol = (function () {
 
             case MESSAGE_TYPE.PEER_DICONNECTED:
                 callbacks.readPeerDisconnectedMessage(message[1]);
+                break;
+
+            case MESSAGE_TYPE.IDENTIFY:
+                callbacks.readIdentificationMessage(message[1]);
                 break;
 
             case MESSAGE_TYPE.RELAY:
@@ -381,6 +406,14 @@ var Protocol = (function () {
         var message = [
             this.MESSAGE_TYPE.PEER_DICONNECTED,
             address
+        ];
+        this.callbacks.writeMessage(message);
+    };
+
+    Protocol.prototype.writeIdentification = function (id) {
+        var message = [
+            this.MESSAGE_TYPE.IDENTIFY,
+            id
         ];
         this.callbacks.writeMessage(message);
     };

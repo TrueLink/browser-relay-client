@@ -111,7 +111,9 @@ export class Hub {
     public connect(address: string): wsConn.API {
         var peer = wsConn.WebSocketConnection.create(address);
 
-        this.peers.add(peer);
+        peer.onOpen.on(() => {
+            this.peers.add(peer);
+        });
 
         peer.onClose.on((event) => {
             this.peers.remove(peer);

@@ -21,6 +21,7 @@
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="src\app.ts" />
     <TypeScriptCompile Include="src\connection-manager.ts" />
     <TypeScriptCompile Include="src\connection.ts" />
     <TypeScriptCompile Include="src\event.ts" />

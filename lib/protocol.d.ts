@@ -2,6 +2,7 @@
     writeMessage(message: any): void;
     readPeerConnectedMessage(address: string): void;
     readPeerDisconnectedMessage(address: string): void;
+    readIdentificationMessage(id: string): void;
     readRelayMessage(address: string, message: string): void;
     readRelayedMessage(address: string, message: string): void;
 }
@@ -11,6 +12,7 @@ export declare class Protocol {
         DIRECT: number;
         PEER_CONNECTED: number;
         PEER_DICONNECTED: number;
+        IDENTIFY: number;
         RELAY: number;
         RELAYED: number;
     };
@@ -20,6 +22,7 @@ export declare class Protocol {
     public writeDirect(content: string): void;
     public writeConnected(address: string): void;
     public writeDisconnected(address: string): void;
+    public writeIdentification(id: string): void;
     public writeRelay(address: string, content: string): void;
     public writeRelayed(address: string, content: string): void;
 }

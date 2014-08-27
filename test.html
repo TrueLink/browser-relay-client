@@ -2,18 +2,52 @@
 <html>
 <head>
     <title>Ping</title>
+    <style>
+        form.ramp-conn textarea {
+            width: 450px;
+            height: 90px;
+        }
+    </style>
     <script src="dist/index.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/zepto/1.1.4/zepto.js"></script>
 
     <script>
         $(function() {
             $("form.ramp-conn").each(function () {
+                var form = $(this);
                 var addr = $(this.elements["addr"]).val();
+                var span_id = form.find("#id");
+                var peers = $(this.elements["peers"]);
                 $(this.elements["use"]).change(function() {
                     if(this.checked) {
-                        window.hub.connect(addr);
+                        var conn = window.hub.connect(addr);
+                        
+                        conn.onIdentified.on(function(id) {
+                            span_id.text(id);
+                        });
+
+                        conn.onConnected.on(function(id) {
+                            var list = peers.text().split("\n").filter(Boolean);
+                            var index = list.indexOf(id);
+                            if(index == -1) {
+                                list.push(id);
+                                peers.text(list.join("\n"));
+                            }
+                        });
+
+                        conn.onDisconnected.on(function(id) {
+                            var list = peers.text().split("\n").filter(Boolean);
+                            var index = list.indexOf(id);
+                            if(index >= 0) {
+                                list.splice(index, 1);
+                                peers.text(list.join("\n"));
+                            }
+
+                        });
                     } else {
                         window.hub.disconnect(addr);
+                        span_id.text(id);
+                        peers.text("");
                     }                    
                 });
             });
@@ -22,18 +56,25 @@
 </head>
 <body>
     <form id="ramp1" class="ramp-conn">
-        <input type="text" name="addr" value="ws://127.0.0.1:20500/">
-        <input name="use" type="checkbox">
+        <div>
+            <input type="text" name="addr" value="ws://127.0.0.1:20500/">
+            <input name="use" type="checkbox">
+            <span id="id" type="text"></span>
+        </div>
+        <div>
+            <textarea name="peers"></textarea>
+        </div>
     </form>
 
     <form id="ramp2" class="ramp-conn">
-        <input type="text" name="addr" value="ws://127.0.0.1:20501/">
-        <input name="use" type="checkbox">
-    </form>
-
-    <form id="ramp3" class="ramp-conn">
-        <input type="text" name="addr" value="ws://127.0.0.1:20502/">
-        <input name="use" type="checkbox">
+        <div>
+            <input type="text" name="addr" value="ws://127.0.0.1:20501/">
+            <input name="use" type="checkbox">
+            <span id="id" type="text"></span>
+        </div>
+        <div>
+            <textarea name="peers"></textarea>
+        </div>
     </form>
 </body>
 </html>

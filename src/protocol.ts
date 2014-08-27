@@ -9,6 +9,7 @@ export interface Callbacks {
 
     readPeerConnectedMessage(address: string): void;
     readPeerDisconnectedMessage(address: string): void;
+    readIdentificationMessage(id: string): void;
     readRelayMessage(address: string, message: string): void;
     readRelayedMessage(address: string, message: string): void;
 }
@@ -20,6 +21,7 @@ export class Protocol {
         DIRECT: 0,
         PEER_CONNECTED: 1,
         PEER_DICONNECTED: 2,
+        IDENTIFY: 3,
         RELAY: 6,
         RELAYED: 7,
     };
@@ -44,6 +46,10 @@ export class Protocol {
                 callbacks.readPeerDisconnectedMessage(message[1]);
                 break;
 
+            case MESSAGE_TYPE.IDENTIFY:
+                callbacks.readIdentificationMessage(message[1]);
+                break;
+
             case MESSAGE_TYPE.RELAY:
                 callbacks.readRelayMessage(message[1], message[2]);
                 break;
@@ -57,7 +63,7 @@ export class Protocol {
         }
     }
 
-    writeDirect(content: string): void {
+    public writeDirect(content: string): void {
         var message = [
             this.MESSAGE_TYPE.DIRECT,
             content,
@@ -65,7 +71,7 @@ export class Protocol {
         this.callbacks.writeMessage(message);
     }
 
-    writeConnected(address: string): void {
+    public writeConnected(address: string): void {
         var message = [
             this.MESSAGE_TYPE.PEER_CONNECTED,
             address,
@@ -73,7 +79,7 @@ export class Protocol {
         this.callbacks.writeMessage(message);
     }
 
-    writeDisconnected(address: string): void {
+    public writeDisconnected(address: string): void {
         var message = [
             this.MESSAGE_TYPE.PEER_DICONNECTED,
             address,
@@ -81,7 +87,15 @@ export class Protocol {
         this.callbacks.writeMessage(message);
     }
 
-    writeRelay(address: string, content: string): void {
+    public writeIdentification(id: string): void {
+        var message = [
+            this.MESSAGE_TYPE.IDENTIFY,
+            id,
+        ];
+        this.callbacks.writeMessage(message);
+    }
+
+    public writeRelay(address: string, content: string): void {
         var message = [
             this.MESSAGE_TYPE.RELAY,
             address,
@@ -90,7 +104,7 @@ export class Protocol {
         this.callbacks.writeMessage(message);
     }
 
-    writeRelayed(address: string, content: string): void {
+    public writeRelayed(address: string, content: string): void {
         var message = [
             this.MESSAGE_TYPE.RELAYED,
             address,
