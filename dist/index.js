@@ -22,20 +22,20 @@ var ConnectionManager = (function () {
         this.onAdd = new event.Event();
         this.onRemove = new event.Event();
     }
-    ConnectionManager.prototype.get = function (address) {
-        if (address === undefined) {
+    ConnectionManager.prototype.get = function (key) {
+        if (key === undefined) {
             return this.connectionList.slice();
         }
 
-        return this.connectionMap[address];
+        return this.connectionMap[key];
     };
 
     ConnectionManager.prototype.add = function (connection) {
-        var address = connection.address;
-        if (address in this.connectionMap)
+        var endpoint = connection.endpoint;
+        if (endpoint in this.connectionMap)
             return false;
 
-        this.connectionMap[address] = connection;
+        this.connectionMap[endpoint] = connection;
         this.connectionList.push(connection);
 
         this.onAdd.emit(connection);
@@ -43,12 +43,12 @@ var ConnectionManager = (function () {
     };
 
     ConnectionManager.prototype.remove = function (connection) {
-        var address = connection.address;
-        var mappedConnection = this.connectionMap[address];
+        var endpoint = connection.endpoint;
+        var mappedConnection = this.connectionMap[endpoint];
         if (!mappedConnection || mappedConnection !== connection)
             return false;
 
-        delete this.connectionMap[address];
+        delete this.connectionMap[endpoint];
 
         var index = this.connectionList.indexOf(connection);
         this.connectionList.splice(index, 1);
@@ -82,10 +82,11 @@ var event = require("./event");
 
 var Connection = (function (_super) {
     __extends(Connection, _super);
-    function Connection(transport, address) {
+    function Connection(transport) {
         _super.call(this, this);
-        this.address = address;
-        this.transport = transport;
+
+        this._transport = transport;
+        this._endpoint = transport.getEndpoint();
 
         this.onIdentified = new event.Event();
         this.onConnected = new event.Event();
@@ -93,8 +94,7 @@ var Connection = (function (_super) {
     }
     Connection.prototype.getApi = function () {
         return {
-            id: this.id,
-            address: this.address,
+            endpoint: this._endpoint,
             close: function () {
                 throw new Error("AbstractMethod");
             },
@@ -115,27 +115,26 @@ var Connection = (function (_super) {
     Connection.prototype.writeMessage = function (message) {
         var data = JSON.stringify(message);
         console.log("-->", data);
-        this.transport.writeMessageData(data);
+        this._transport.writeMessageData(data);
     };
 
-    Connection.prototype.readPeerConnectedMessage = function (id) {
-        this.onConnected.emit(id);
+    Connection.prototype.readPeerConnectedMessage = function (endpoint) {
+        this.onConnected.emit(endpoint);
     };
 
-    Connection.prototype.readPeerDisconnectedMessage = function (id) {
-        this.onDisconnected.emit(id);
+    Connection.prototype.readPeerDisconnectedMessage = function (endpoint) {
+        this.onDisconnected.emit(endpoint);
     };
 
-    Connection.prototype.readIdentificationMessage = function (id) {
-        this.id = id;
-        this.onIdentified.emit(id);
+    Connection.prototype.readIdentificationMessage = function (endpoint) {
+        this.onIdentified.emit(endpoint);
     };
 
-    Connection.prototype.readRelayMessage = function (destination, message) {
+    Connection.prototype.readRelayMessage = function (targetEndpoint, message) {
         console.warn("client can't relay messages at the moment");
     };
 
-    Connection.prototype.readRelayedMessage = function (destination, message) {
+    Connection.prototype.readRelayedMessage = function (sourceEndpoint, message) {
         console.warn("client process relayed message");
         //    var MESSAGE_TYPE = this.MESSAGE_TYPE,
         //        messageType = message[0];
@@ -269,22 +268,22 @@ var Hub = (function () {
 
         this.peers.onAdd.on(function (connection) {
             _this.onConnected.emit(connection);
-            console.log('peer connected: ' + connection.address + " (" + _this.peers.length + ")");
+            console.log('peer connected: ' + connection.endpoint + " (" + _this.peers.length + ")");
             _this.peers.get().forEach(function (other) {
                 if (other === connection)
                     return;
-                connection.connected(other.address);
-                other.connected(connection.address);
+                connection.connected(other.endpoint);
+                other.connected(connection.endpoint);
             });
         });
 
         this.peers.onRemove.on(function (connection) {
             _this.onDisconnected.emit(connection);
-            console.log('peer disconnected: ' + connection.address + " (" + _this.peers.length + ")");
+            console.log('peer disconnected: ' + connection.endpoint + " (" + _this.peers.length + ")");
             _this.peers.get().forEach(function (other) {
                 if (other === connection)
                     return;
-                other.disconnected(connection.address);
+                other.disconnected(connection.endpoint);
             });
         });
     }
@@ -394,43 +393,43 @@ var Protocol = (function () {
         this.callbacks.writeMessage(message);
     };
 
-    Protocol.prototype.writeConnected = function (address) {
+    Protocol.prototype.writeConnected = function (endpoint) {
         var message = [
             this.MESSAGE_TYPE.PEER_CONNECTED,
-            address
+            endpoint
         ];
         this.callbacks.writeMessage(message);
     };
 
-    Protocol.prototype.writeDisconnected = function (address) {
+    Protocol.prototype.writeDisconnected = function (endpoint) {
         var message = [
             this.MESSAGE_TYPE.PEER_DICONNECTED,
-            address
+            endpoint
         ];
         this.callbacks.writeMessage(message);
     };
 
-    Protocol.prototype.writeIdentification = function (id) {
+    Protocol.prototype.writeIdentification = function (endpoint) {
         var message = [
             this.MESSAGE_TYPE.IDENTIFY,
-            id
+            endpoint
         ];
         this.callbacks.writeMessage(message);
     };
 
-    Protocol.prototype.writeRelay = function (address, content) {
+    Protocol.prototype.writeRelay = function (targetEndpoint, content) {
         var message = [
             this.MESSAGE_TYPE.RELAY,
-            address,
+            targetEndpoint,
             content
         ];
         this.callbacks.writeMessage(message);
     };
 
-    Protocol.prototype.writeRelayed = function (address, content) {
+    Protocol.prototype.writeRelayed = function (sourceEndpoint, content) {
         var message = [
             this.MESSAGE_TYPE.RELAYED,
-            address,
+            sourceEndpoint,
             content
         ];
         this.callbacks.writeMessage(message);
@@ -455,7 +454,9 @@ var WebSocketConnection = (function (_super) {
     __extends(WebSocketConnection, _super);
     function WebSocketConnection(address, webSocket) {
         var _this = this;
-        _super.call(this, this, address);
+        this._address = address;
+
+        _super.call(this, this);
 
         this.onOpen = new event.Event();
         this.onError = new event.Event();
@@ -479,6 +480,10 @@ var WebSocketConnection = (function (_super) {
             _this.onClose.emit(event);
         });
     }
+    WebSocketConnection.prototype.getEndpoint = function () {
+        return this._address;
+    };
+
     WebSocketConnection.prototype.writeMessageData = function (data) {
         this.webSocket.send(data);
     };

@@ -2,8 +2,7 @@
 import event = require("./event");
 
 export interface API {
-    id: string; // readonly
-    address: string; // readonly
+    endpoint: string; // readonly
     close(): void;
     connected(remoteAddr: string): void;
     disconnected(remoteAddr: string): void;
@@ -14,26 +13,26 @@ export interface API {
 }
 
 // TODO: Add APIImpl
-// TODO: move address field into websocket
 
 export interface Callbacks {
     writeMessageData(message: any): void;
+    getEndpoint(): string;
 }
 
 export class Connection extends protocol.Protocol implements protocol.Callbacks {
-    private id: string;
-    private address: string;
+    private _endpoint: string;
 
-    private transport: Callbacks;
+    private _transport: Callbacks;
 
     private onIdentified: event.Event<string>;
     private onConnected: event.Event<string>;
     private onDisconnected: event.Event<string>;
    
-    constructor(transport: Callbacks, address: string) {
+    constructor(transport: Callbacks) {
         super(this)
-        this.address = address;
-        this.transport = transport;
+
+        this._transport = transport;
+        this._endpoint = transport.getEndpoint();
 
         this.onIdentified = new event.Event<string>();
         this.onConnected = new event.Event<string>();
@@ -42,8 +41,7 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
 
     public getApi(): API {
         return {
-            id: this.id,
-            address: this.address,
+            endpoint: this._endpoint,
             close: () => { throw new Error("AbstractMethod"); },
             connected: this.writeConnected.bind(this),
             disconnected: this.writeDisconnected.bind(this),
@@ -62,27 +60,26 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
     public writeMessage(message: any): void {
         var data = JSON.stringify(message);
         console.log("-->", data);
-        this.transport.writeMessageData(data);
+        this._transport.writeMessageData(data);
     }
 
-    public readPeerConnectedMessage(id: string): void {
-        this.onConnected.emit(id);
+    public readPeerConnectedMessage(endpoint: string): void {
+        this.onConnected.emit(endpoint);
     }
 
-    public readPeerDisconnectedMessage(id: string): void {
-        this.onDisconnected.emit(id);
+    public readPeerDisconnectedMessage(endpoint: string): void {
+        this.onDisconnected.emit(endpoint);
     }
 
-    public readIdentificationMessage(id: string): void {
-        this.id = id;
-        this.onIdentified.emit(id);
+    public readIdentificationMessage(endpoint: string): void {
+        this.onIdentified.emit(endpoint);
     }
 
-    public readRelayMessage(destination: string, message: any): void {
+    public readRelayMessage(targetEndpoint: string, message: any): void {
         console.warn("client can't relay messages at the moment");
     }
 
-    public readRelayedMessage(destination: string, message: any): void {
+    public readRelayedMessage(sourceEndpoint: string, message: any): void {
         console.warn("client process relayed message");
     //    var MESSAGE_TYPE = this.MESSAGE_TYPE,
     //        messageType = message[0];

@@ -7,11 +7,11 @@ function notImplemented() {
 export interface Callbacks {
     writeMessage(message: any): void;
 
-    readPeerConnectedMessage(address: string): void;
-    readPeerDisconnectedMessage(address: string): void;
-    readIdentificationMessage(id: string): void;
-    readRelayMessage(address: string, message: string): void;
-    readRelayedMessage(address: string, message: string): void;
+    readPeerConnectedMessage(endpoint: string): void;
+    readPeerDisconnectedMessage(endpoint: string): void;
+    readIdentificationMessage(endpoint: string): void;
+    readRelayMessage(targetEndpoint: string, message: string): void;
+    readRelayedMessage(sourceEndpoint: string, message: string): void;
 }
 
 export var PROTOCOL_NAME = "p";
@@ -71,43 +71,43 @@ export class Protocol {
         this.callbacks.writeMessage(message);
     }
 
-    public writeConnected(address: string): void {
+    public writeConnected(endpoint: string): void {
         var message = [
             this.MESSAGE_TYPE.PEER_CONNECTED,
-            address,
+            endpoint,
         ];
         this.callbacks.writeMessage(message);
     }
 
-    public writeDisconnected(address: string): void {
+    public writeDisconnected(endpoint: string): void {
         var message = [
             this.MESSAGE_TYPE.PEER_DICONNECTED,
-            address,
+            endpoint,
         ];
         this.callbacks.writeMessage(message);
     }
 
-    public writeIdentification(id: string): void {
+    public writeIdentification(endpoint: string): void {
         var message = [
             this.MESSAGE_TYPE.IDENTIFY,
-            id,
+            endpoint,
         ];
         this.callbacks.writeMessage(message);
     }
 
-    public writeRelay(address: string, content: string): void {
+    public writeRelay(targetEndpoint: string, content: string): void {
         var message = [
             this.MESSAGE_TYPE.RELAY,
-            address,
+            targetEndpoint,
             content,
         ];
         this.callbacks.writeMessage(message);
     }
 
-    public writeRelayed(address: string, content: string): void {
+    public writeRelayed(sourceEndpoint: string, content: string): void {
         var message = [
             this.MESSAGE_TYPE.RELAYED,
-            address,
+            sourceEndpoint,
             content,
         ];
         this.callbacks.writeMessage(message);

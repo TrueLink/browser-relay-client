@@ -71,20 +71,20 @@ export class Hub {
 
         this.peers.onAdd.on((connection) => {
             this.onConnected.emit(connection);
-            console.log('peer connected: ' + connection.address + " (" + this.peers.length + ")");
+            console.log('peer connected: ' + connection.endpoint + " (" + this.peers.length + ")");
             this.peers.get().forEach(function (other) {
                 if (other === connection) return;
-                connection.connected(other.address);
-                other.connected(connection.address);
+                connection.connected(other.endpoint);
+                other.connected(connection.endpoint);
             });
         });
 
         this.peers.onRemove.on((connection) => {
             this.onDisconnected.emit(connection);
-            console.log('peer disconnected: ' + connection.address + " (" + this.peers.length + ")");
+            console.log('peer disconnected: ' + connection.endpoint + " (" + this.peers.length + ")");
             this.peers.get().forEach(function (other) {
                 if (other === connection) return;
-                other.disconnected(connection.address);
+                other.disconnected(connection.endpoint);
             });
         });
     }

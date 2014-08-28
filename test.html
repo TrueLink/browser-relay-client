@@ -4,8 +4,13 @@
     <title>Ping</title>
     <style>
         form.ramp-conn textarea {
-            width: 450px;
+            width: 600px;
             height: 90px;
+        }
+
+        textarea#rt {
+            width: 600px;
+            height: 200px;
         }
     </style>
     <script src="dist/index.js"></script>
@@ -13,6 +18,8 @@
 
     <script>
         $(function() {
+            $("guid").text(window.hub.guid);
+
             $("form.ramp-conn").each(function () {
                 var form = $(this);
                 var addr = $(this.elements["addr"]).val();
@@ -45,9 +52,9 @@
 
                         });
                     } else {
-                        window.hub.disconnect(addr);
-                        span_id.text(id);
+                        span_id.text("");
                         peers.text("");
+                        window.hub.disconnect(addr);
                     }                    
                 });
             });
@@ -76,5 +83,8 @@
             <textarea name="peers"></textarea>
         </div>
     </form>
+
+    <h1>GUID: <span id="guid"></span></h1>
+    <textarea id="rt"></textarea>    
 </body>
 </html>

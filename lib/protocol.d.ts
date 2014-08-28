@@ -1,10 +1,10 @@
 ﻿export interface Callbacks {
     writeMessage(message: any): void;
-    readPeerConnectedMessage(address: string): void;
-    readPeerDisconnectedMessage(address: string): void;
-    readIdentificationMessage(id: string): void;
-    readRelayMessage(address: string, message: string): void;
-    readRelayedMessage(address: string, message: string): void;
+    readPeerConnectedMessage(endpoint: string): void;
+    readPeerDisconnectedMessage(endpoint: string): void;
+    readIdentificationMessage(endpoint: string): void;
+    readRelayMessage(targetEndpoint: string, message: string): void;
+    readRelayedMessage(sourceEndpoint: string, message: string): void;
 }
 export declare var PROTOCOL_NAME: string;
 export declare class Protocol {
@@ -20,9 +20,9 @@ export declare class Protocol {
     constructor(callbacks: Callbacks);
     public readMessage(message: any): void;
     public writeDirect(content: string): void;
-    public writeConnected(address: string): void;
-    public writeDisconnected(address: string): void;
-    public writeIdentification(id: string): void;
-    public writeRelay(address: string, content: string): void;
-    public writeRelayed(address: string, content: string): void;
+    public writeConnected(endpoint: string): void;
+    public writeDisconnected(endpoint: string): void;
+    public writeIdentification(endpoint: string): void;
+    public writeRelay(targetEndpoint: string, content: string): void;
+    public writeRelayed(sourceEndpoint: string, content: string): void;
 }

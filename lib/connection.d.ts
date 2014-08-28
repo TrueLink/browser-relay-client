@@ -1,8 +1,7 @@
 ﻿import protocol = require('./protocol');
 import event = require("./event");
 export interface API {
-    id: string;
-    address: string;
+    endpoint: string;
     close(): void;
     connected(remoteAddr: string): void;
     disconnected(remoteAddr: string): void;
@@ -12,21 +11,21 @@ export interface API {
 }
 export interface Callbacks {
     writeMessageData(message: any): void;
+    getEndpoint(): string;
 }
 export declare class Connection extends protocol.Protocol implements protocol.Callbacks {
-    private id;
-    private address;
-    private transport;
+    private _endpoint;
+    private _transport;
     private onIdentified;
     private onConnected;
     private onDisconnected;
-    constructor(transport: Callbacks, address: string);
+    constructor(transport: Callbacks);
     public getApi(): API;
     public readMessageData(data: string): void;
     public writeMessage(message: any): void;
-    public readPeerConnectedMessage(id: string): void;
-    public readPeerDisconnectedMessage(id: string): void;
-    public readIdentificationMessage(id: string): void;
-    public readRelayMessage(destination: string, message: any): void;
-    public readRelayedMessage(destination: string, message: any): void;
+    public readPeerConnectedMessage(endpoint: string): void;
+    public readPeerDisconnectedMessage(endpoint: string): void;
+    public readIdentificationMessage(endpoint: string): void;
+    public readRelayMessage(targetEndpoint: string, message: any): void;
+    public readRelayedMessage(sourceEndpoint: string, message: any): void;
 }

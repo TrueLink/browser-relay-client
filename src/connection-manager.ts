@@ -3,14 +3,14 @@
 import event = require("./event");
 
 export interface IConnection {
-    address: string;
+    endpoint: string;
 }
 
 function noop(connection: IConnection): void {
 }
 
 export class ConnectionManager<T extends IConnection> {
-    private connectionMap: { [address: string]: T; } = {};
+    private connectionMap: { [key: string]: T; } = {};
     private connectionList: Array<T> = [];
 
     public onAdd: event.Event<T>;
@@ -22,20 +22,20 @@ export class ConnectionManager<T extends IConnection> {
     }
 
     public get(): Array<T>;
-    public get(address: string): T;
-    public get(address?: string): any {
-        if (address === undefined) {
+    public get(key: string): T;
+    public get(key?: string): any {
+        if (key === undefined) {
             return this.connectionList.slice();
         }
 
-        return this.connectionMap[address];
+        return this.connectionMap[key];
     }
 
     public add(connection: T) {
-        var address = connection.address;
-        if (address in this.connectionMap) return false;
+        var endpoint = connection.endpoint;
+        if (endpoint in this.connectionMap) return false;
 
-        this.connectionMap[address] = connection;
+        this.connectionMap[endpoint] = connection;
         this.connectionList.push(connection);
 
         this.onAdd.emit(connection);
@@ -43,11 +43,11 @@ export class ConnectionManager<T extends IConnection> {
     }
 
     public remove(connection: T) {
-        var address = connection.address;
-        var mappedConnection = this.connectionMap[address];
+        var endpoint = connection.endpoint;
+        var mappedConnection = this.connectionMap[endpoint];
         if (!mappedConnection || mappedConnection !== connection) return false;
 
-        delete this.connectionMap[address];
+        delete this.connectionMap[endpoint];
 
         var index = this.connectionList.indexOf(connection);
         this.connectionList.splice(index, 1);

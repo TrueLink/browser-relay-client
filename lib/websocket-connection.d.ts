@@ -6,10 +6,12 @@ export interface API extends connection.API {
     onClose: event.Event<CloseEvent>;
 }
 export declare class WebSocketConnection extends connection.Connection {
+    private _address;
     private webSocket;
     public onOpen: event.Event<Event>;
     public onError: event.Event<ErrorEvent>;
     public onClose: event.Event<CloseEvent>;
+    public getEndpoint(): string;
     constructor(address: string, webSocket: WebSocket);
     public writeMessageData(data: string): void;
     public getApi(): API;
