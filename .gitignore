@@ -5,3 +5,5 @@ src/**/*.js
 node_modules/
 temp/
 src/.baseDir.ts
+dist/
+lib/
