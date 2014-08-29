@@ -16,9 +16,9 @@ export interface Callbacks {
 export declare class Connection extends protocol.Protocol implements protocol.Callbacks {
     private _endpoint;
     private _transport;
-    private onIdentified;
-    private onConnected;
-    private onDisconnected;
+    private _onIdentified;
+    private _onConnected;
+    private _onDisconnected;
     constructor();
     public setTransport(transport: Callbacks): void;
     public getApi(): API;

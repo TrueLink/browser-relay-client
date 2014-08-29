@@ -3,8 +3,8 @@ export interface IConnection {
     endpoint: string;
 }
 export declare class ConnectionManager<T extends IConnection> {
-    private connectionMap;
-    private connectionList;
+    private _connectionMap;
+    private _connectionList;
     public onAdd: event.Event<T>;
     public onRemove: event.Event<T>;
     constructor();

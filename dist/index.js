@@ -19,26 +19,26 @@ function noop(connection) {
 
 var ConnectionManager = (function () {
     function ConnectionManager() {
-        this.connectionMap = {};
-        this.connectionList = [];
+        this._connectionMap = {};
+        this._connectionList = [];
         this.onAdd = new event.Event();
         this.onRemove = new event.Event();
     }
     ConnectionManager.prototype.get = function (key) {
         if (key === undefined) {
-            return this.connectionList.slice();
+            return this._connectionList.slice();
         }
 
-        return this.connectionMap[key];
+        return this._connectionMap[key];
     };
 
     ConnectionManager.prototype.add = function (connection) {
         var endpoint = connection.endpoint;
-        if (endpoint in this.connectionMap)
+        if (endpoint in this._connectionMap)
             return false;
 
-        this.connectionMap[endpoint] = connection;
-        this.connectionList.push(connection);
+        this._connectionMap[endpoint] = connection;
+        this._connectionList.push(connection);
 
         this.onAdd.emit(connection);
         return true;
@@ -46,14 +46,14 @@ var ConnectionManager = (function () {
 
     ConnectionManager.prototype.remove = function (connection) {
         var endpoint = connection.endpoint;
-        var mappedConnection = this.connectionMap[endpoint];
+        var mappedConnection = this._connectionMap[endpoint];
         if (!mappedConnection || mappedConnection !== connection)
             return false;
 
-        delete this.connectionMap[endpoint];
+        delete this._connectionMap[endpoint];
 
-        var index = this.connectionList.indexOf(connection);
-        this.connectionList.splice(index, 1);
+        var index = this._connectionList.indexOf(connection);
+        this._connectionList.splice(index, 1);
 
         this.onRemove.emit(connection);
         return true;
@@ -61,7 +61,7 @@ var ConnectionManager = (function () {
 
     Object.defineProperty(ConnectionManager.prototype, "length", {
         get: function () {
-            return this.connectionList.length;
+            return this._connectionList.length;
         },
         enumerable: true,
         configurable: true
@@ -86,9 +86,9 @@ var Connection = (function (_super) {
     __extends(Connection, _super);
     function Connection() {
         _super.call(this);
-        this.onIdentified = new event.Event();
-        this.onConnected = new event.Event();
-        this.onDisconnected = new event.Event();
+        this._onIdentified = new event.Event();
+        this._onConnected = new event.Event();
+        this._onDisconnected = new event.Event();
         this.setReactions(this);
     }
     Connection.prototype.setTransport = function (transport) {
@@ -104,9 +104,9 @@ var Connection = (function (_super) {
             },
             connected: this.writeConnected.bind(this),
             disconnected: this.writeDisconnected.bind(this),
-            onIdentified: this.onIdentified,
-            onConnected: this.onConnected,
-            onDisconnected: this.onDisconnected
+            onIdentified: this._onIdentified,
+            onConnected: this._onConnected,
+            onDisconnected: this._onDisconnected
         };
     };
 
@@ -123,15 +123,15 @@ var Connection = (function (_super) {
     };
 
     Connection.prototype.readPeerConnectedMessage = function (endpoint) {
-        this.onConnected.emit(endpoint);
+        this._onConnected.emit(endpoint);
     };
 
     Connection.prototype.readPeerDisconnectedMessage = function (endpoint) {
-        this.onDisconnected.emit(endpoint);
+        this._onDisconnected.emit(endpoint);
     };
 
     Connection.prototype.readIdentificationMessage = function (endpoint) {
-        this.onIdentified.emit(endpoint);
+        this._onIdentified.emit(endpoint);
     };
 
     Connection.prototype.readRelayMessage = function (targetEndpoint, message) {
@@ -486,21 +486,21 @@ var WebSocketConnection = (function (_super) {
         this._address = address;
         this.setTransport(this);
 
-        this.webSocket = webSocket;
+        this._webSocket = webSocket;
 
-        this.webSocket.addEventListener('message', function (event) {
+        this._webSocket.addEventListener('message', function (event) {
             _this.readMessageData(event.data);
         });
 
-        this.webSocket.addEventListener('open', function (event) {
+        this._webSocket.addEventListener('open', function (event) {
             _this.onOpen.emit(event);
         });
 
-        this.webSocket.addEventListener('error', function (event) {
+        this._webSocket.addEventListener('error', function (event) {
             _this.onError.emit(event);
         });
 
-        this.webSocket.addEventListener('close', function (event) {
+        this._webSocket.addEventListener('close', function (event) {
             _this.onClose.emit(event);
         });
     }
@@ -509,7 +509,7 @@ var WebSocketConnection = (function (_super) {
     };
 
     WebSocketConnection.prototype.writeMessageData = function (data) {
-        this.webSocket.send(data);
+        this._webSocket.send(data);
     };
 
     WebSocketConnection.prototype.getApi = function () {
@@ -522,7 +522,7 @@ var WebSocketConnection = (function (_super) {
     };
 
     WebSocketConnection.prototype.close = function () {
-        this.webSocket.close();
+        this._webSocket.close();
     };
 
     WebSocketConnection.create = function (address, options) {

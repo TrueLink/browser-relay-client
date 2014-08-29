@@ -11,7 +11,7 @@ export interface API extends connection.API {
 export class WebSocketConnection extends connection.Connection {
 
     private _address: string;
-    private webSocket: WebSocket;
+    private _webSocket: WebSocket;
 
     public onOpen: event.Event<Event> = new event.Event<Event>();
     public onError: event.Event<ErrorEvent> = new event.Event<ErrorEvent>();
@@ -27,27 +27,27 @@ export class WebSocketConnection extends connection.Connection {
         this._address = address;
         this.setTransport(this);
 
-        this.webSocket = webSocket;
+        this._webSocket = webSocket;
 
-        this.webSocket.addEventListener('message', (event) => {
+        this._webSocket.addEventListener('message', (event) => {
             this.readMessageData(event.data);
         });
 
-        this.webSocket.addEventListener('open', (event) => {
+        this._webSocket.addEventListener('open', (event) => {
             this.onOpen.emit(event);
         });
 
-        this.webSocket.addEventListener('error', (event) => {
+        this._webSocket.addEventListener('error', (event) => {
             this.onError.emit(event);
         });
 
-        this.webSocket.addEventListener('close', (event) => {
+        this._webSocket.addEventListener('close', (event) => {
             this.onClose.emit(event);
         });
     }
 
     public writeMessageData(data: string) {
-        this.webSocket.send(data);
+        this._webSocket.send(data);
     }
 
     public getApi(): API {
@@ -60,7 +60,7 @@ export class WebSocketConnection extends connection.Connection {
     }
 
     public close(): void {
-        this.webSocket.close();
+        this._webSocket.close();
     }
 
     static create(address: string, options: {
