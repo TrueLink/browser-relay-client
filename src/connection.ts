@@ -24,9 +24,9 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
 
     private _transport: Callbacks;
 
-    private onIdentified: event.Event<string> = new event.Event<string>();
-    private onConnected: event.Event<string> = new event.Event<string>();
-    private onDisconnected: event.Event<string> = new event.Event<string>();
+    private _onIdentified: event.Event<string> = new event.Event<string>();
+    private _onConnected: event.Event<string> = new event.Event<string>();
+    private _onDisconnected: event.Event<string> = new event.Event<string>();
    
     constructor() {
         super();
@@ -44,9 +44,9 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
             close: () => { throw new Error("AbstractMethod"); },
             connected: this.writeConnected.bind(this),
             disconnected: this.writeDisconnected.bind(this),
-            onIdentified: this.onIdentified,
-            onConnected: this.onConnected,
-            onDisconnected: this.onDisconnected,
+            onIdentified: this._onIdentified,
+            onConnected: this._onConnected,
+            onDisconnected: this._onDisconnected,
         };
     }
 
@@ -63,15 +63,15 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
     }
 
     public readPeerConnectedMessage(endpoint: string): void {
-        this.onConnected.emit(endpoint);
+        this._onConnected.emit(endpoint);
     }
 
     public readPeerDisconnectedMessage(endpoint: string): void {
-        this.onDisconnected.emit(endpoint);
+        this._onDisconnected.emit(endpoint);
     }
 
     public readIdentificationMessage(endpoint: string): void {
-        this.onIdentified.emit(endpoint);
+        this._onIdentified.emit(endpoint);
     }
 
     public readRelayMessage(targetEndpoint: string, message: any): void {

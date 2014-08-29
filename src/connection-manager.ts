@@ -10,8 +10,8 @@ function noop(connection: IConnection): void {
 }
 
 export class ConnectionManager<T extends IConnection> {
-    private connectionMap: { [key: string]: T; } = {};
-    private connectionList: Array<T> = [];
+    private _connectionMap: { [key: string]: T; } = {};
+    private _connectionList: Array<T> = [];
 
     public onAdd: event.Event<T> = new event.Event<T>();
     public onRemove: event.Event<T> = new event.Event<T>();
@@ -23,18 +23,18 @@ export class ConnectionManager<T extends IConnection> {
     public get(key: string): T;
     public get(key?: string): any {
         if (key === undefined) {
-            return this.connectionList.slice();
+            return this._connectionList.slice();
         }
 
-        return this.connectionMap[key];
+        return this._connectionMap[key];
     }
 
     public add(connection: T) {
         var endpoint = connection.endpoint;
-        if (endpoint in this.connectionMap) return false;
+        if (endpoint in this._connectionMap) return false;
 
-        this.connectionMap[endpoint] = connection;
-        this.connectionList.push(connection);
+        this._connectionMap[endpoint] = connection;
+        this._connectionList.push(connection);
 
         this.onAdd.emit(connection);
         return true;
@@ -42,19 +42,19 @@ export class ConnectionManager<T extends IConnection> {
 
     public remove(connection: T) {
         var endpoint = connection.endpoint;
-        var mappedConnection = this.connectionMap[endpoint];
+        var mappedConnection = this._connectionMap[endpoint];
         if (!mappedConnection || mappedConnection !== connection) return false;
 
-        delete this.connectionMap[endpoint];
+        delete this._connectionMap[endpoint];
 
-        var index = this.connectionList.indexOf(connection);
-        this.connectionList.splice(index, 1);
+        var index = this._connectionList.indexOf(connection);
+        this._connectionList.splice(index, 1);
 
         this.onRemove.emit(connection);
         return true;
     }
 
     public get length(): number {
-        return this.connectionList.length;
+        return this._connectionList.length;
     }
 }
