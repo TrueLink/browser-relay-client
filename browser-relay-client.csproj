@@ -29,8 +29,7 @@
     <TypeScriptCompile Include="src\hub.ts" />
     <TypeScriptCompile Include="src\websocket-connection.ts" />
     <TypeScriptCompile Include="src\protocol.ts" />
-    <TypeScriptCompile Include="typings\browserify\browserify.d.ts" />
-    <TypeScriptCompile Include="typings\node\node.d.ts" />
+    <TypeScriptCompile Include="typings\node-uuid\node-uuid.d.ts" />
     <TypeScriptCompile Include="typings\tsd.d.ts" />
   </ItemGroup>
   <ItemGroup>

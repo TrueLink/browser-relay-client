@@ -12,13 +12,17 @@
             width: 600px;
             height: 200px;
         }
+
+        h1 {
+            font-family: monospace;
+        }
     </style>
     <script src="dist/index.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/zepto/1.1.4/zepto.js"></script>
 
     <script>
         $(function() {
-            $("guid").text(window.hub.guid);
+            $("#guid").text(window.hub.guid);
 
             $("form.ramp-conn").each(function () {
                 var form = $(this);

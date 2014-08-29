@@ -7,6 +7,7 @@ export interface ConnectionManager extends connectionManager.ConnectionManager<c
 }
 
 export interface API {
+    guid: string;
     connect(address: string): wsConn.API;
     disconnect(address: string): void;
     connections: connection.API[];
@@ -15,6 +16,7 @@ export interface API {
 }
 
 export class APIImpl implements API {
+    private _guid: string;
     private _manager: ConnectionManager;
 
     private _onConnected: event.Event<connection.API>;
@@ -23,12 +25,14 @@ export class APIImpl implements API {
     private _disconnect: (address: string) => void;
 
     constructor(options: {
+        guid: string;
         manager: ConnectionManager;
         connect: (address: string) => wsConn.API;
         disconnect: (address: string) => void;
         onConnected: event.Event<connection.API>;
         onDisconnected: event.Event<connection.API>;
     }) {
+        this._guid = options.guid;
         this._manager = options.manager;
         this._onConnected = options.onConnected;
         this._onDisconnected = options.onDisconnected;
@@ -42,6 +46,10 @@ export class APIImpl implements API {
 
     public disconnect(address: string): void {
         this._disconnect(address);
+    }
+
+    public get guid(): string {
+        return this._guid;
     }
 
     public get connections(): connection.API[] {
@@ -59,18 +67,27 @@ export class APIImpl implements API {
 
 export class Hub {
     private peers: ConnectionManager;
+    private _guid: string;
 
     private onConnected: event.Event<connection.API>;
     private onDisconnected: event.Event<connection.API>;
 
-    constructor(peers: ConnectionManager) {
+    constructor(guid: string, peers: ConnectionManager) {
         this.peers = peers; 
+        this._guid = guid;
 
         this.onConnected = new event.Event<connection.API>();
         this.onDisconnected = new event.Event<connection.API>();
 
         this.peers.onAdd.on((connection) => {
             this.onConnected.emit(connection);
+        });
+
+        this.peers.onRemove.on((connection) => {
+            this.onDisconnected.emit(connection);
+        });
+
+        this.onConnected.on((connection) => {
             console.log('peer connected: ' + connection.endpoint + " (" + this.peers.length + ")");
             this.peers.get().forEach(function (other) {
                 if (other === connection) return;
@@ -79,18 +96,19 @@ export class Hub {
             });
         });
 
-        this.peers.onRemove.on((connection) => {
-            this.onDisconnected.emit(connection);
+        this.onDisconnected.on((connection) => {
             console.log('peer disconnected: ' + connection.endpoint + " (" + this.peers.length + ")");
             this.peers.get().forEach(function (other) {
                 if (other === connection) return;
                 other.disconnected(connection.endpoint);
             });
         });
+
     }
 
     private getApi(): API {
         return new APIImpl({
+            guid: this._guid,
             connect: this.connect.bind(this),
             disconnect: this.disconnect.bind(this),
             manager: this.peers,
@@ -99,11 +117,11 @@ export class Hub {
         });
     }
 
-    static create(options: {
+    static create(guid: string, options: {
     } = {}): API {
         var manager = new connectionManager.ConnectionManager<connection.API>();
 
-        var hub = new Hub(manager);
+        var hub = new Hub(guid, manager);
 
         return hub.getApi();
     }

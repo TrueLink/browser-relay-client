@@ -1,1 +1,1 @@
-{"version":3,"file":".baseDir.js","sourceRoot":"","sources":["../src/.baseDir.ts"],"names":[],"mappings":"AAAA,uEAAuE"}
+{"version":3,"file":".baseDir.js","sourceRoot":"src/","sources":[".baseDir.ts"],"names":[],"mappings":"AAAA,uEAAuE"}

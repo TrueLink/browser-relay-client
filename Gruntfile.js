@@ -24,7 +24,8 @@ module.exports = function (grunt) {
         ts: {
             build: {
                 src: [
-                    'src/**/*.ts'
+                    'src/**/*.ts',
+                    'typings/**/*.d.ts',
                 ],
                 outDir: 'lib',
                 options: {
@@ -37,6 +38,7 @@ module.exports = function (grunt) {
                     sourceMap: true,
                     mapRoot: '',
                     declaration: true,
+                    sourceRoot: 'src',
                 }
             }
         },
