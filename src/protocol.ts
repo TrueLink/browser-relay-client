@@ -28,7 +28,10 @@ export class Protocol {
 
     private callbacks: Callbacks;
 
-    constructor(callbacks: Callbacks) {
+    constructor() {
+    }
+
+    public setReactions(callbacks: Callbacks) {
         this.callbacks = callbacks;
     }
 

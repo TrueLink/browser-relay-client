@@ -19,7 +19,8 @@ export declare class Connection extends protocol.Protocol implements protocol.Ca
     private onIdentified;
     private onConnected;
     private onDisconnected;
-    constructor(transport: Callbacks);
+    constructor();
+    public setTransport(transport: Callbacks): void;
     public getApi(): API;
     public readMessageData(data: string): void;
     public writeMessage(message: any): void;

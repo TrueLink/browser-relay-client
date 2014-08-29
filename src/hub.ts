@@ -103,7 +103,6 @@ export class Hub {
                 other.disconnected(connection.endpoint);
             });
         });
-
     }
 
     private getApi(): API {

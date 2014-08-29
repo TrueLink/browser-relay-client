@@ -17,7 +17,8 @@ export declare class Protocol {
         RELAYED: number;
     };
     private callbacks;
-    constructor(callbacks: Callbacks);
+    constructor();
+    public setReactions(callbacks: Callbacks): void;
     public readMessage(message: any): void;
     public writeDirect(content: string): void;
     public writeConnected(endpoint: string): void;

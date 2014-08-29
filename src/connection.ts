@@ -24,19 +24,18 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
 
     private _transport: Callbacks;
 
-    private onIdentified: event.Event<string>;
-    private onConnected: event.Event<string>;
-    private onDisconnected: event.Event<string>;
+    private onIdentified: event.Event<string> = new event.Event<string>();
+    private onConnected: event.Event<string> = new event.Event<string>();
+    private onDisconnected: event.Event<string> = new event.Event<string>();
    
-    constructor(transport: Callbacks) {
-        super(this)
+    constructor() {
+        super();
+        this.setReactions(this);
+    }
 
+    public setTransport(transport: Callbacks) {
         this._transport = transport;
         this._endpoint = transport.getEndpoint();
-
-        this.onIdentified = new event.Event<string>();
-        this.onConnected = new event.Event<string>();
-        this.onDisconnected = new event.Event<string>();
     }
 
     public getApi(): API {

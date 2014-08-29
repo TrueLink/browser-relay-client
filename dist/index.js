@@ -84,16 +84,18 @@ var event = require("./event");
 
 var Connection = (function (_super) {
     __extends(Connection, _super);
-    function Connection(transport) {
-        _super.call(this, this);
-
-        this._transport = transport;
-        this._endpoint = transport.getEndpoint();
-
+    function Connection() {
+        _super.call(this);
         this.onIdentified = new event.Event();
         this.onConnected = new event.Event();
         this.onDisconnected = new event.Event();
+        this.setReactions(this);
     }
+    Connection.prototype.setTransport = function (transport) {
+        this._transport = transport;
+        this._endpoint = transport.getEndpoint();
+    };
+
     Connection.prototype.getApi = function () {
         return {
             endpoint: this._endpoint,
@@ -362,7 +364,7 @@ function notImplemented() {
 exports.PROTOCOL_NAME = "p";
 
 var Protocol = (function () {
-    function Protocol(callbacks) {
+    function Protocol() {
         this.MESSAGE_TYPE = {
             DIRECT: 0,
             PEER_CONNECTED: 1,
@@ -371,8 +373,11 @@ var Protocol = (function () {
             RELAY: 6,
             RELAYED: 7
         };
-        this.callbacks = callbacks;
     }
+    Protocol.prototype.setReactions = function (callbacks) {
+        this.callbacks = callbacks;
+    };
+
     Protocol.prototype.readMessage = function (message) {
         var MESSAGE_TYPE = this.MESSAGE_TYPE;
         var callbacks = this.callbacks;
@@ -473,13 +478,13 @@ var WebSocketConnection = (function (_super) {
     __extends(WebSocketConnection, _super);
     function WebSocketConnection(address, webSocket) {
         var _this = this;
-        this._address = address;
-
-        _super.call(this, this);
-
+        _super.call(this);
         this.onOpen = new event.Event();
         this.onError = new event.Event();
         this.onClose = new event.Event();
+
+        this._address = address;
+        this.setTransport(this);
 
         this.webSocket = webSocket;
 

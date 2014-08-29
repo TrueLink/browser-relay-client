@@ -13,12 +13,10 @@ export class ConnectionManager<T extends IConnection> {
     private connectionMap: { [key: string]: T; } = {};
     private connectionList: Array<T> = [];
 
-    public onAdd: event.Event<T>;
-    public onRemove: event.Event<T>;
+    public onAdd: event.Event<T> = new event.Event<T>();
+    public onRemove: event.Event<T> = new event.Event<T>();
 
     constructor() {
-        this.onAdd = new event.Event<T>();
-        this.onRemove = new event.Event<T>();
     }
 
     public get(): Array<T>;

@@ -13,22 +13,19 @@ export class WebSocketConnection extends connection.Connection {
     private _address: string;
     private webSocket: WebSocket;
 
-    public onOpen: event.Event<Event>;
-    public onError: event.Event<ErrorEvent>;
-    public onClose: event.Event<CloseEvent>;
+    public onOpen: event.Event<Event> = new event.Event<Event>();
+    public onError: event.Event<ErrorEvent> = new event.Event<ErrorEvent>();
+    public onClose: event.Event<CloseEvent> = new event.Event<CloseEvent>();
 
     public getEndpoint(): string {
         return this._address;
     }
 
     constructor(address: string, webSocket: WebSocket) {
+        super();
+
         this._address = address;
-
-        super(this);
-
-        this.onOpen = new event.Event<Event>();
-        this.onError = new event.Event<ErrorEvent>();
-        this.onClose = new event.Event<CloseEvent>();
+        this.setTransport(this);
 
         this.webSocket = webSocket;
 
