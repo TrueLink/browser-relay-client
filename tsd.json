@@ -5,11 +5,8 @@
   "path": "typings",
   "bundle": "typings/tsd.d.ts",
   "installed": {
-    "browserify/browserify.d.ts": {
-      "commit": "807ba77ee6af4e587618535b0d820f03e3353823"
-    },
     "node/node.d.ts": {
-      "commit": "807ba77ee6af4e587618535b0d820f03e3353823"
+      "commit": "e84bd12323e10abb7d0951a2aaa283319a6faf09"
     }
   }
 }
