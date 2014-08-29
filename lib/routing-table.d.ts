@@ -8,6 +8,8 @@ export declare class RoutingRow {
     public parent : string;
     public endpoint : string;
     public equals(row: RoutingRow): boolean;
+    public serialize(): any;
+    static deserialize(data: any): RoutingRow;
 }
 export declare class RoutingTable {
     private _list;
@@ -18,4 +20,6 @@ export declare class RoutingTable {
     public update(other: RoutingTable): void;
     public subtract(other: RoutingTable): void;
     public length : number;
+    public serialize(): any;
+    static deserialize(data: any[]): RoutingTable;
 }

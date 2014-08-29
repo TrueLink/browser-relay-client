@@ -1,16 +1,41 @@
 ﻿import protocol = require('./protocol');
 import event = require("./event");
 
-export interface API {
+export interface IdentificationData {
+    authority: string;
+    endpoint: string;
+}
+
+export interface ConnectionAPI {
     endpoint: string; // readonly
     close(): void;
     connected(remoteAddr: string): void;
     disconnected(remoteAddr: string): void;
+    addroutes(routes: any): void;
 
-    onIdentified: event.Event<string>; // readonly
+    onIdentified: event.Event<IdentificationData>; // readonly
     onConnected: event.Event<string>; // readonly
     onDisconnected: event.Event<string>; // readonly
+    onRoutesReceived: event.Event<any>; // readonly
 }
+
+//export class ConnectionAPIImpl implements API {
+//    private _onIdentified: event.Event<IdentificationData>;
+//    private _onConnected: event.Event<string>;
+//    private _onDisconnected: event.Event<string>;
+
+//    public get onIdentified(): event.Event<IdentificationData> {
+//        return this._onIdentified;
+//    }
+
+//    public get onConnected(): event.Event<string> {
+//        return this._onConnected;
+//    }
+
+//    public get onDisconnected(): event.Event<string> {
+//        return this._onDisconnected;
+//    }
+//}
 
 // TODO: Add APIImpl
 
@@ -24,9 +49,10 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
 
     private _transport: Callbacks;
 
-    private _onIdentified: event.Event<string> = new event.Event<string>();
+    private _onIdentified: event.Event<IdentificationData> = new event.Event<IdentificationData>();
     private _onConnected: event.Event<string> = new event.Event<string>();
     private _onDisconnected: event.Event<string> = new event.Event<string>();
+    private _onRoutesReceived: event.Event<any> = new event.Event<any>();
    
     constructor() {
         super();
@@ -38,15 +64,17 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
         this._endpoint = transport.getEndpoint();
     }
 
-    public getApi(): API {
+    public getApi(): ConnectionAPI {
         return {
             endpoint: this._endpoint,
             close: () => { throw new Error("AbstractMethod"); },
             connected: this.writeConnected.bind(this),
             disconnected: this.writeDisconnected.bind(this),
+            addroutes: this.writeAddRoutes.bind(this),
             onIdentified: this._onIdentified,
             onConnected: this._onConnected,
             onDisconnected: this._onDisconnected,
+            onRoutesReceived: this._onRoutesReceived,
         };
     }
 
@@ -70,8 +98,15 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
         this._onDisconnected.emit(endpoint);
     }
 
-    public readIdentificationMessage(endpoint: string): void {
-        this._onIdentified.emit(endpoint);
+    public readAddRoutesMessage(table: any): void {
+        this._onRoutesReceived.emit(table);
+    }
+
+    public readIdentificationMessage(authority: string, endpoint: string): void {
+        this._onIdentified.emit({
+            authority: authority,
+            endpoint: endpoint,
+        });
     }
 
     public readRelayMessage(targetEndpoint: string, message: any): void {

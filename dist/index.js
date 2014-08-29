@@ -10,7 +10,7 @@ var W = window;
 W.hub = instance;
 //# sourceMappingURL=app.js.map
 
-},{"./hub":5,"node-uuid":28}],2:[function(require,module,exports){
+},{"./hub":5,"node-uuid":29}],2:[function(require,module,exports){
 // This module should be common for client and server.
 var event = require("./event");
 
@@ -89,6 +89,7 @@ var Connection = (function (_super) {
         this._onIdentified = new event.Event();
         this._onConnected = new event.Event();
         this._onDisconnected = new event.Event();
+        this._onRoutesReceived = new event.Event();
         this.setReactions(this);
     }
     Connection.prototype.setTransport = function (transport) {
@@ -104,9 +105,11 @@ var Connection = (function (_super) {
             },
             connected: this.writeConnected.bind(this),
             disconnected: this.writeDisconnected.bind(this),
+            addroutes: this.writeAddRoutes.bind(this),
             onIdentified: this._onIdentified,
             onConnected: this._onConnected,
-            onDisconnected: this._onDisconnected
+            onDisconnected: this._onDisconnected,
+            onRoutesReceived: this._onRoutesReceived
         };
     };
 
@@ -130,8 +133,15 @@ var Connection = (function (_super) {
         this._onDisconnected.emit(endpoint);
     };
 
-    Connection.prototype.readIdentificationMessage = function (endpoint) {
-        this._onIdentified.emit(endpoint);
+    Connection.prototype.readAddRoutesMessage = function (table) {
+        this._onRoutesReceived.emit(table);
+    };
+
+    Connection.prototype.readIdentificationMessage = function (authority, endpoint) {
+        this._onIdentified.emit({
+            authority: authority,
+            endpoint: endpoint
+        });
     };
 
     Connection.prototype.readRelayMessage = function (targetEndpoint, message) {
@@ -218,9 +228,10 @@ exports.Event = Event;
 var event = require("./event");
 var connectionManager = require("./connection-manager");
 var wsConn = require("./websocket-connection");
+var routing = require("./routing-table");
 
-var APIImpl = (function () {
-    function APIImpl(options) {
+var HubAPIImpl = (function () {
+    function HubAPIImpl(options) {
         this._guid = options.guid;
         this._manager = options.manager;
         this._onConnected = options.onConnected;
@@ -228,15 +239,15 @@ var APIImpl = (function () {
         this._connect = options.connect;
         this._disconnect = options.disconnect;
     }
-    APIImpl.prototype.connect = function (address) {
+    HubAPIImpl.prototype.connect = function (address) {
         return this._connect(address);
     };
 
-    APIImpl.prototype.disconnect = function (address) {
+    HubAPIImpl.prototype.disconnect = function (address) {
         this._disconnect(address);
     };
 
-    Object.defineProperty(APIImpl.prototype, "guid", {
+    Object.defineProperty(HubAPIImpl.prototype, "guid", {
         get: function () {
             return this._guid;
         },
@@ -244,7 +255,7 @@ var APIImpl = (function () {
         configurable: true
     });
 
-    Object.defineProperty(APIImpl.prototype, "connections", {
+    Object.defineProperty(HubAPIImpl.prototype, "connections", {
         get: function () {
             return this._manager.get();
         },
@@ -252,7 +263,7 @@ var APIImpl = (function () {
         configurable: true
     });
 
-    Object.defineProperty(APIImpl.prototype, "onConnected", {
+    Object.defineProperty(HubAPIImpl.prototype, "onConnected", {
         get: function () {
             return this._onConnected;
         },
@@ -260,37 +271,37 @@ var APIImpl = (function () {
         configurable: true
     });
 
-    Object.defineProperty(APIImpl.prototype, "onDisconnected", {
+    Object.defineProperty(HubAPIImpl.prototype, "onDisconnected", {
         get: function () {
             return this._onDisconnected;
         },
         enumerable: true,
         configurable: true
     });
-    return APIImpl;
+    return HubAPIImpl;
 })();
-exports.APIImpl = APIImpl;
+exports.HubAPIImpl = HubAPIImpl;
 
 var Hub = (function () {
     function Hub(guid, peers) {
         var _this = this;
-        this.peers = peers;
-        this._guid = guid;
-
+        this._routing = new routing.RoutingTable();
         this.onConnected = new event.Event();
         this.onDisconnected = new event.Event();
+        this._peers = peers;
+        this._guid = guid;
 
-        this.peers.onAdd.on(function (connection) {
+        this._peers.onAdd.on(function (connection) {
             _this.onConnected.emit(connection);
         });
 
-        this.peers.onRemove.on(function (connection) {
+        this._peers.onRemove.on(function (connection) {
             _this.onDisconnected.emit(connection);
         });
 
         this.onConnected.on(function (connection) {
-            console.log('peer connected: ' + connection.endpoint + " (" + _this.peers.length + ")");
-            _this.peers.get().forEach(function (other) {
+            console.log('peer connected: ' + connection.endpoint + " (" + _this._peers.length + ")");
+            _this._peers.get().forEach(function (other) {
                 if (other === connection)
                     return;
                 connection.connected(other.endpoint);
@@ -299,8 +310,8 @@ var Hub = (function () {
         });
 
         this.onDisconnected.on(function (connection) {
-            console.log('peer disconnected: ' + connection.endpoint + " (" + _this.peers.length + ")");
-            _this.peers.get().forEach(function (other) {
+            console.log('peer disconnected: ' + connection.endpoint + " (" + _this._peers.length + ")");
+            _this._peers.get().forEach(function (other) {
                 if (other === connection)
                     return;
                 other.disconnected(connection.endpoint);
@@ -308,11 +319,11 @@ var Hub = (function () {
         });
     }
     Hub.prototype.getApi = function () {
-        return new APIImpl({
+        return new HubAPIImpl({
             guid: this._guid,
             connect: this.connect.bind(this),
             disconnect: this.disconnect.bind(this),
-            manager: this.peers,
+            manager: this._peers,
             onConnected: this.onConnected,
             onDisconnected: this.onDisconnected
         });
@@ -332,22 +343,44 @@ var Hub = (function () {
         var peer = wsConn.WebSocketConnection.create(address);
 
         peer.onOpen.on(function () {
-            _this.peers.add(peer);
+            _this._peers.add(peer);
         });
 
         peer.onClose.on(function (event) {
-            _this.peers.remove(peer);
+            _this._peers.remove(peer);
+        });
+
+        peer.onIdentified.on(function (data) {
+            var row = new routing.RoutingRow(_this._guid, data.authority, data.endpoint);
+            _this._routing.add(row);
+            var table = _this._routing.serialize();
+            _this._peers.get().forEach(function (other) {
+                other.addroutes(table);
+            });
+        });
+
+        peer.onRoutesReceived.on(function (table) {
+            var routes = routing.RoutingTable.deserialize(table);
+            routes.subtract(_this._routing);
+            if (routes.length > 0) {
+                var table = _this._routing.serialize();
+                _this._peers.get().forEach(function (other) {
+                    if (other === peer)
+                        return;
+                    other.addroutes(table);
+                });
+            }
         });
 
         return peer;
     };
 
     Hub.prototype.isConnected = function (address) {
-        return this.peers.get(address) !== undefined;
+        return this._peers.get(address) !== undefined;
     };
 
     Hub.prototype.disconnect = function (address) {
-        var peer = this.peers.get(address);
+        var peer = this._peers.get(address);
         peer.close();
     };
     return Hub;
@@ -355,7 +388,7 @@ var Hub = (function () {
 exports.Hub = Hub;
 //# sourceMappingURL=hub.js.map
 
-},{"./connection-manager":2,"./event":4,"./websocket-connection":7}],6:[function(require,module,exports){
+},{"./connection-manager":2,"./event":4,"./routing-table":7,"./websocket-connection":8}],6:[function(require,module,exports){
 // This module should be common for client and server.
 function notImplemented() {
     throw new Error('This method is not implemented');
@@ -371,7 +404,8 @@ var Protocol = (function () {
             PEER_DICONNECTED: 2,
             IDENTIFY: 3,
             RELAY: 6,
-            RELAYED: 7
+            RELAYED: 7,
+            ADD_ROUTES: 100
         };
     }
     Protocol.prototype.setReactions = function (callbacks) {
@@ -392,8 +426,12 @@ var Protocol = (function () {
                 callbacks.readPeerDisconnectedMessage(message[1]);
                 break;
 
+            case MESSAGE_TYPE.ADD_ROUTES:
+                callbacks.readAddRoutesMessage(message[1]);
+                break;
+
             case MESSAGE_TYPE.IDENTIFY:
-                callbacks.readIdentificationMessage(message[1]);
+                callbacks.readIdentificationMessage(message[1], message[2]);
                 break;
 
             case MESSAGE_TYPE.RELAY:
@@ -433,9 +471,18 @@ var Protocol = (function () {
         this.callbacks.writeMessage(message);
     };
 
-    Protocol.prototype.writeIdentification = function (endpoint) {
+    Protocol.prototype.writeAddRoutes = function (table) {
+        var message = [
+            this.MESSAGE_TYPE.ADD_ROUTES,
+            table
+        ];
+        this.callbacks.writeMessage(message);
+    };
+
+    Protocol.prototype.writeIdentification = function (authority, endpoint) {
         var message = [
             this.MESSAGE_TYPE.IDENTIFY,
+            authority,
             endpoint
         ];
         this.callbacks.writeMessage(message);
@@ -464,6 +511,130 @@ exports.Protocol = Protocol;
 //# sourceMappingURL=protocol.js.map
 
 },{}],7:[function(require,module,exports){
+// This module should be common for client and server.
+var event = require("./event");
+
+var RoutingRow = (function () {
+    function RoutingRow(self, parent, endpoint) {
+        this._self = self;
+        this._parent = parent;
+        this._endpoint = endpoint;
+    }
+    Object.defineProperty(RoutingRow.prototype, "self", {
+        get: function () {
+            return this._self;
+        },
+        enumerable: true,
+        configurable: true
+    });
+
+    Object.defineProperty(RoutingRow.prototype, "parent", {
+        get: function () {
+            return this._parent;
+        },
+        enumerable: true,
+        configurable: true
+    });
+
+    Object.defineProperty(RoutingRow.prototype, "endpoint", {
+        get: function () {
+            return this._endpoint;
+        },
+        enumerable: true,
+        configurable: true
+    });
+
+    RoutingRow.prototype.equals = function (row) {
+        if (this._self != row._self)
+            return false;
+        if (this._parent != row._parent)
+            return false;
+        if (this._endpoint != row._endpoint)
+            return false;
+        return true;
+    };
+
+    RoutingRow.prototype.serialize = function () {
+        return [this._self, this._parent, this._endpoint];
+    };
+
+    RoutingRow.deserialize = function (data) {
+        return new RoutingRow(data[0], data[1], data[2]);
+    };
+    return RoutingRow;
+})();
+exports.RoutingRow = RoutingRow;
+
+var RoutingTable = (function () {
+    function RoutingTable() {
+        this._list = [];
+        this.onAdd = new event.Event();
+    }
+    RoutingTable.prototype.add = function (row) {
+        this._list.push(row);
+    };
+
+    RoutingTable.prototype.contains = function (row) {
+        for (var i = 0; i < this._list.length; i++) {
+            if (this._list[i].equals(row)) {
+                return true;
+            }
+        }
+
+        return false;
+    };
+
+    RoutingTable.prototype.update = function (other) {
+        for (var i = 0; i < other._list.length; i++) {
+            var row = other._list[i];
+            if (this.contains(row))
+                continue;
+            this.add(row);
+        }
+    };
+
+    RoutingTable.prototype.subtract = function (other) {
+        var remaining = [];
+        for (var i = 0; i < this._list.length; i++) {
+            var row = this._list[i];
+            if (other.contains(row))
+                continue;
+            remaining.push(row);
+        }
+        this._list = remaining;
+    };
+
+    Object.defineProperty(RoutingTable.prototype, "length", {
+        get: function () {
+            return this._list.length;
+        },
+        enumerable: true,
+        configurable: true
+    });
+
+    RoutingTable.prototype.serialize = function () {
+        var data = [];
+        for (var i = 0; i < this._list.length; i++) {
+            var row = this._list[i];
+            data.push(row.serialize());
+        }
+        return data;
+    };
+
+    RoutingTable.deserialize = function (data) {
+        var table = new RoutingTable();
+        for (var i = 0; i < data.length; i++) {
+            var item = data[i];
+            table._list.push(RoutingRow.deserialize(item));
+        }
+        return table;
+    };
+    return RoutingTable;
+})();
+exports.RoutingTable = RoutingTable;
+//# sourceMappingURL=routing-table.js.map
+
+},{"./event":4}],8:[function(require,module,exports){
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -537,7 +708,7 @@ var WebSocketConnection = (function (_super) {
 exports.WebSocketConnection = WebSocketConnection;
 //# sourceMappingURL=websocket-connection.js.map
 
-},{"./connection":3,"./event":4,"./protocol":6}],8:[function(require,module,exports){
+},{"./connection":3,"./event":4,"./protocol":6}],9:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -1708,7 +1879,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":9,"ieee754":10}],9:[function(require,module,exports){
+},{"base64-js":10,"ieee754":11}],10:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -1830,7 +2001,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 exports.read = function(buffer, offset, isLE, mLen, nBytes) {
   var e, m,
       eLen = nBytes * 8 - mLen - 1,
@@ -1916,7 +2087,7 @@ exports.write = function(buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128;
 };
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 (function (Buffer){
 var createHash = require('sha.js')
 
@@ -1950,7 +2121,7 @@ module.exports = function (alg) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./md5":15,"buffer":8,"ripemd160":16,"sha.js":18}],12:[function(require,module,exports){
+},{"./md5":16,"buffer":9,"ripemd160":17,"sha.js":19}],13:[function(require,module,exports){
 (function (Buffer){
 var createHash = require('./create-hash')
 
@@ -1995,7 +2166,7 @@ Hmac.prototype.digest = function (enc) {
 
 
 }).call(this,require("buffer").Buffer)
-},{"./create-hash":11,"buffer":8}],13:[function(require,module,exports){
+},{"./create-hash":12,"buffer":9}],14:[function(require,module,exports){
 (function (Buffer){
 var intSize = 4;
 var zeroBuffer = new Buffer(intSize); zeroBuffer.fill(0);
@@ -2033,7 +2204,7 @@ function hash(buf, fn, hashSize, bigEndian) {
 module.exports = { hash: hash };
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":8}],14:[function(require,module,exports){
+},{"buffer":9}],15:[function(require,module,exports){
 (function (Buffer){
 var rng = require('./rng')
 
@@ -2091,7 +2262,7 @@ each(['createCredentials'
 })
 
 }).call(this,require("buffer").Buffer)
-},{"./create-hash":11,"./create-hmac":12,"./pbkdf2":22,"./rng":23,"buffer":8}],15:[function(require,module,exports){
+},{"./create-hash":12,"./create-hmac":13,"./pbkdf2":23,"./rng":24,"buffer":9}],16:[function(require,module,exports){
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
  * Digest Algorithm, as defined in RFC 1321.
@@ -2248,7 +2419,7 @@ module.exports = function md5(buf) {
   return helpers.hash(buf, core_md5, 16);
 };
 
-},{"./helpers":13}],16:[function(require,module,exports){
+},{"./helpers":14}],17:[function(require,module,exports){
 (function (Buffer){
 
 module.exports = ripemd160
@@ -2457,7 +2628,7 @@ function ripemd160(message) {
 
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":8}],17:[function(require,module,exports){
+},{"buffer":9}],18:[function(require,module,exports){
 var u = require('./util')
 var write = u.write
 var fill = u.zeroFill
@@ -2557,7 +2728,7 @@ module.exports = function (Buffer) {
   return Hash
 }
 
-},{"./util":21}],18:[function(require,module,exports){
+},{"./util":22}],19:[function(require,module,exports){
 var exports = module.exports = function (alg) {
   var Alg = exports[alg]
   if(!Alg) throw new Error(alg + ' is not supported (we accept pull requests)')
@@ -2571,7 +2742,7 @@ exports.sha =
 exports.sha1 = require('./sha1')(Buffer, Hash)
 exports.sha256 = require('./sha256')(Buffer, Hash)
 
-},{"./hash":17,"./sha1":19,"./sha256":20,"buffer":8}],19:[function(require,module,exports){
+},{"./hash":18,"./sha1":20,"./sha256":21,"buffer":9}],20:[function(require,module,exports){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
  * in FIPS PUB 180-1
@@ -2732,7 +2903,7 @@ module.exports = function (Buffer, Hash) {
   return Sha1
 }
 
-},{"util":27}],20:[function(require,module,exports){
+},{"util":28}],21:[function(require,module,exports){
 
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -2897,7 +3068,7 @@ module.exports = function (Buffer, Hash) {
 
 }
 
-},{"./util":21,"util":27}],21:[function(require,module,exports){
+},{"./util":22,"util":28}],22:[function(require,module,exports){
 exports.write = write
 exports.zeroFill = zeroFill
 
@@ -2935,7 +3106,7 @@ function zeroFill(buf, from) {
 }
 
 
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 (function (Buffer){
 // JavaScript PBKDF2 Implementation
 // Based on http://git.io/qsv2zw
@@ -3021,7 +3192,7 @@ module.exports = function (createHmac, exports) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":8}],23:[function(require,module,exports){
+},{"buffer":9}],24:[function(require,module,exports){
 (function (Buffer){
 (function() {
   module.exports = function(size) {
@@ -3035,7 +3206,7 @@ module.exports = function (createHmac, exports) {
 }())
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":8}],24:[function(require,module,exports){
+},{"buffer":9}],25:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -3060,7 +3231,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -3125,14 +3296,14 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],26:[function(require,module,exports){
+},{}],27:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],27:[function(require,module,exports){
+},{}],28:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -3722,7 +3893,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":26,"_process":25,"inherits":24}],28:[function(require,module,exports){
+},{"./support/isBuffer":27,"_process":26,"inherits":25}],29:[function(require,module,exports){
 (function (Buffer){
 //     uuid.js
 //
@@ -3971,7 +4142,7 @@ function hasOwnProperty(obj, prop) {
 }).call(this);
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":8,"crypto":14}]},{},[1])
+},{"buffer":9,"crypto":15}]},{},[1])
 
 
 //# sourceMappingURL=index.js.map

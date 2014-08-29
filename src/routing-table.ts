@@ -32,6 +32,14 @@ export class RoutingRow {
         if (this._endpoint != row._endpoint) return false;
         return true;
     }
+
+    public serialize(): any {
+        return [this._self, this._parent, this._endpoint];
+    }
+
+    static deserialize(data: any): RoutingRow {
+        return new RoutingRow(data[0], data[1], data[2]);
+    } 
 }
 
 export class RoutingTable {
@@ -70,10 +78,29 @@ export class RoutingTable {
             var row = this._list[i];
             if (other.contains(row)) continue;
             remaining.push(row);
-        }        
+        }
+        this._list = remaining;
     }
 
     public get length(): number {
         return this._list.length;
+    }
+
+    public serialize(): any {
+        var data: any[] = [];
+        for (var i = 0; i < this._list.length; i++) {
+            var row = this._list[i];
+            data.push(row.serialize());
+        }
+        return data;
+    }
+
+    static deserialize(data: any[]): RoutingTable {
+        var table = new RoutingTable();
+        for (var i = 0; i < data.length; i++) {
+            var item = data[i];
+            table._list.push(RoutingRow.deserialize(item));
+        }
+        return table;
     }
 }

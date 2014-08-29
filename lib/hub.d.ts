@@ -2,17 +2,17 @@
 import event = require("./event");
 import connectionManager = require("./connection-manager");
 import wsConn = require("./websocket-connection");
-export interface ConnectionManager extends connectionManager.ConnectionManager<connection.API> {
+export interface ConnectionManager extends connectionManager.ConnectionManager<connection.ConnectionAPI> {
 }
-export interface API {
+export interface HubAPI {
     guid: string;
-    connect(address: string): wsConn.API;
+    connect(address: string): wsConn.WebSocketConnectionAPI;
     disconnect(address: string): void;
-    connections: connection.API[];
-    onConnected: event.Event<connection.API>;
-    onDisconnected: event.Event<connection.API>;
+    connections: connection.ConnectionAPI[];
+    onConnected: event.Event<connection.ConnectionAPI>;
+    onDisconnected: event.Event<connection.ConnectionAPI>;
 }
-export declare class APIImpl implements API {
+export declare class HubAPIImpl implements HubAPI {
     private _guid;
     private _manager;
     private _onConnected;
@@ -22,27 +22,28 @@ export declare class APIImpl implements API {
     constructor(options: {
         guid: string;
         manager: ConnectionManager;
-        connect: (address: string) => wsConn.API;
+        connect: (address: string) => wsConn.WebSocketConnectionAPI;
         disconnect: (address: string) => void;
-        onConnected: event.Event<connection.API>;
-        onDisconnected: event.Event<connection.API>;
+        onConnected: event.Event<connection.ConnectionAPI>;
+        onDisconnected: event.Event<connection.ConnectionAPI>;
     });
-    public connect(address: string): wsConn.API;
+    public connect(address: string): wsConn.WebSocketConnectionAPI;
     public disconnect(address: string): void;
     public guid : string;
-    public connections : connection.API[];
-    public onConnected : event.Event<connection.API>;
-    public onDisconnected : event.Event<connection.API>;
+    public connections : connection.ConnectionAPI[];
+    public onConnected : event.Event<connection.ConnectionAPI>;
+    public onDisconnected : event.Event<connection.ConnectionAPI>;
 }
 export declare class Hub {
-    private peers;
+    private _peers;
+    private _routing;
     private _guid;
     private onConnected;
     private onDisconnected;
     constructor(guid: string, peers: ConnectionManager);
     private getApi();
-    static create(guid: string, options?: {}): API;
-    public connect(address: string): wsConn.API;
+    static create(guid: string, options?: {}): HubAPI;
+    public connect(address: string): wsConn.WebSocketConnectionAPI;
     public isConnected(address: string): boolean;
     public disconnect(address: string): void;
 }

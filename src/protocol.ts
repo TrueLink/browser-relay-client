@@ -9,7 +9,8 @@ export interface Callbacks {
 
     readPeerConnectedMessage(endpoint: string): void;
     readPeerDisconnectedMessage(endpoint: string): void;
-    readIdentificationMessage(endpoint: string): void;
+    readAddRoutesMessage(table: any): void;
+    readIdentificationMessage(authority: string, endpoint: string): void;
     readRelayMessage(targetEndpoint: string, message: string): void;
     readRelayedMessage(sourceEndpoint: string, message: string): void;
 }
@@ -24,6 +25,7 @@ export class Protocol {
         IDENTIFY: 3,
         RELAY: 6,
         RELAYED: 7,
+        ADD_ROUTES: 100,
     };
 
     private callbacks: Callbacks;
@@ -49,8 +51,12 @@ export class Protocol {
                 callbacks.readPeerDisconnectedMessage(message[1]);
                 break;
 
+            case MESSAGE_TYPE.ADD_ROUTES:
+                callbacks.readAddRoutesMessage(message[1]);
+                break;
+
             case MESSAGE_TYPE.IDENTIFY:
-                callbacks.readIdentificationMessage(message[1]);
+                callbacks.readIdentificationMessage(message[1], message[2]);
                 break;
 
             case MESSAGE_TYPE.RELAY:
@@ -90,9 +96,18 @@ export class Protocol {
         this.callbacks.writeMessage(message);
     }
 
-    public writeIdentification(endpoint: string): void {
+    public writeAddRoutes(table: any): void {
+        var message = [
+            this.MESSAGE_TYPE.ADD_ROUTES,
+            table,
+        ];
+        this.callbacks.writeMessage(message);
+    }
+
+    public writeIdentification(authority: string, endpoint: string): void {
         var message = [
             this.MESSAGE_TYPE.IDENTIFY,
+            authority,
             endpoint,
         ];
         this.callbacks.writeMessage(message);

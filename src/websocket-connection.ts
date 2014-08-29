@@ -2,7 +2,7 @@
 import protocol = require("./protocol");
 import event = require("./event");
 
-export interface API extends connection.API {
+export interface WebSocketConnectionAPI extends connection.ConnectionAPI {
     onOpen: event.Event<Event>;
     onError: event.Event<ErrorEvent>;
     onClose: event.Event<CloseEvent>;
@@ -50,8 +50,8 @@ export class WebSocketConnection extends connection.Connection {
         this._webSocket.send(data);
     }
 
-    public getApi(): API {
-        var api = <API>super.getApi();
+    public getApi(): WebSocketConnectionAPI {
+        var api = <WebSocketConnectionAPI>super.getApi();
         api.onOpen = this.onOpen;
         api.onError = this.onError;
         api.onClose = this.onClose;
@@ -65,7 +65,7 @@ export class WebSocketConnection extends connection.Connection {
 
     static create(address: string, options: {
         PROTOCOL_NAME?: string;
-    } = {}): API {
+    } = {}): WebSocketConnectionAPI {
         var PROTOCOL_NAME = options.PROTOCOL_NAME || protocol.PROTOCOL_NAME;
         var webSocket = new WebSocket(address, PROTOCOL_NAME);
         var connection = new WebSocketConnection(address, webSocket);
