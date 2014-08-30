@@ -14,6 +14,7 @@ export interface HubAPI {
     connections: connection.ConnectionAPI[];
     onConnected: event.Event<connection.ConnectionAPI>;
     onDisconnected: event.Event<connection.ConnectionAPI>;
+    onRoutingChanged: event.Event<any>;
 }
 
 export class HubAPIImpl implements HubAPI {
@@ -22,6 +23,8 @@ export class HubAPIImpl implements HubAPI {
 
     private _onConnected: event.Event<connection.ConnectionAPI>;
     private _onDisconnected: event.Event<connection.ConnectionAPI>;
+    private _onRoutingChanged: event.Event<any>;
+
     private _connect: (address: string) => wsConn.WebSocketConnectionAPI;
     private _disconnect: (address: string) => void;
 
@@ -32,11 +35,13 @@ export class HubAPIImpl implements HubAPI {
         disconnect: (address: string) => void;
         onConnected: event.Event<connection.ConnectionAPI>;
         onDisconnected: event.Event<connection.ConnectionAPI>;
+        onRoutingChanged: event.Event<any>;
     }) {
         this._guid = options.guid;
         this._manager = options.manager;
         this._onConnected = options.onConnected;
         this._onDisconnected = options.onDisconnected;
+        this._onRoutingChanged = options.onRoutingChanged;
         this._connect = options.connect;
         this._disconnect = options.disconnect;
     }
@@ -64,6 +69,10 @@ export class HubAPIImpl implements HubAPI {
     public get onDisconnected(): event.Event<connection.ConnectionAPI> {
         return this._onDisconnected;
     }
+
+    public get onRoutingChanged(): event.Event<any> {
+        return this._onRoutingChanged;
+    }
 }
 
 export class Hub {
@@ -71,22 +80,27 @@ export class Hub {
     private _routing: routing.RoutingTable = new routing.RoutingTable();
     private _guid: string;
 
-    private onConnected: event.Event<connection.ConnectionAPI> = new event.Event<connection.ConnectionAPI>()
-    private onDisconnected: event.Event<connection.ConnectionAPI> = new event.Event<connection.ConnectionAPI>();
+    private _onConnected: event.Event<connection.ConnectionAPI> = new event.Event<connection.ConnectionAPI>()
+    private _onDisconnected: event.Event<connection.ConnectionAPI> = new event.Event<connection.ConnectionAPI>();
+    private _onRoutingChanged: event.Event<any> = new event.Event<any>();
 
     constructor(guid: string, peers: ConnectionManager) {
         this._peers = peers; 
         this._guid = guid;
 
         this._peers.onAdd.on((connection) => {
-            this.onConnected.emit(connection);
+            this._onConnected.emit(connection);
         });
 
         this._peers.onRemove.on((connection) => {
-            this.onDisconnected.emit(connection);
+            this._onDisconnected.emit(connection);
         });
 
-        this.onConnected.on((connection) => {
+        this._routing.onChanged.on((routing) => {
+            this._onRoutingChanged.emit(routing.serialize());
+        });
+
+        this._onConnected.on((connection) => {
             console.log('peer connected: ' + connection.endpoint + " (" + this._peers.length + ")");
             this._peers.get().forEach(function (other) {
                 if (other === connection) return;
@@ -95,11 +109,17 @@ export class Hub {
             });
         });
 
-        this.onDisconnected.on((connection) => {
+        this._onDisconnected.on((connection) => {
             console.log('peer disconnected: ' + connection.endpoint + " (" + this._peers.length + ")");
             this._peers.get().forEach(function (other) {
                 if (other === connection) return;
                 other.disconnected(connection.endpoint);
+            });
+        });
+
+        this._onRoutingChanged.on((table) => {
+            this._peers.get().forEach(function (other) {
+                other.addroutes(table);
             });
         });
     }
@@ -110,8 +130,9 @@ export class Hub {
             connect: this.connect.bind(this),
             disconnect: this.disconnect.bind(this),
             manager: this._peers,
-            onConnected: this.onConnected,
-            onDisconnected: this.onDisconnected,
+            onConnected: this._onConnected,
+            onDisconnected: this._onDisconnected,
+            onRoutingChanged: this._onRoutingChanged,
         });
     }
 
@@ -148,11 +169,9 @@ export class Hub {
             var routes = routing.RoutingTable.deserialize(table);
             routes.subtract(this._routing);
             if (routes.length > 0) {
+                this._routing.update(routes);
                 var table = this._routing.serialize();
-                this._peers.get().forEach(function (other) {
-                    if (other === peer) return;
-                    other.addroutes(table);
-                });
+                this._onRoutingChanged.emit(table);
             }
         });
 

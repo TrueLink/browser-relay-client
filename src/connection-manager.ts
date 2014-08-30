@@ -13,8 +13,16 @@ export class ConnectionManager<T extends IConnection> {
     private _connectionMap: { [key: string]: T; } = {};
     private _connectionList: Array<T> = [];
 
-    public onAdd: event.Event<T> = new event.Event<T>();
-    public onRemove: event.Event<T> = new event.Event<T>();
+    private _onAdd: event.Event<T> = new event.Event<T>();
+    private _onRemove: event.Event<T> = new event.Event<T>();
+
+    public get onAdd(): event.Event<T> {
+        return this._onAdd;
+    }
+
+    public get onRemove() {
+        return this._onRemove;
+    }
 
     constructor() {
     }
@@ -36,7 +44,7 @@ export class ConnectionManager<T extends IConnection> {
         this._connectionMap[endpoint] = connection;
         this._connectionList.push(connection);
 
-        this.onAdd.emit(connection);
+        this._onAdd.emit(connection);
         return true;
     }
 
@@ -50,7 +58,7 @@ export class ConnectionManager<T extends IConnection> {
         var index = this._connectionList.indexOf(connection);
         this._connectionList.splice(index, 1);
 
-        this.onRemove.emit(connection);
+        this._onRemove.emit(connection);
         return true;
     }
 

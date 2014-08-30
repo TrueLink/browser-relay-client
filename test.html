@@ -23,6 +23,16 @@
     <script>
         $(function() {
             $("#guid").text(window.hub.guid);
+            var rt = $("#rt");
+
+            window.hub.onRoutingChanged.on(function(serialized) {
+                var result = [];
+                for(var i = 0; i < serialized.length; i++) {
+                    var row = serialized[i];
+                    result.push(row[0] + " -> " + row[2]);
+                }
+                rt.text(result.join("\n"));
+            });
 
             $("form.ramp-conn").each(function () {
                 var form = $(this);

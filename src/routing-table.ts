@@ -45,13 +45,19 @@ export class RoutingRow {
 export class RoutingTable {
     private _list: Array<RoutingRow> = [];
 
-    public onAdd: event.Event<RoutingRow> = new event.Event<RoutingRow>();
+    private _onChanged: event.Event<RoutingTable> = new event.Event<RoutingTable>();
+
+    public get onChanged(): event.Event<RoutingTable> {
+        return this._onChanged;
+    }
 
     constructor() {
     }
 
     public add(row: RoutingRow): void {
+        if (this.contains(row)) return;
         this._list.push(row);
+        this._onChanged.emit(this);
     }
 
     public contains(row: RoutingRow): boolean {
@@ -65,10 +71,15 @@ export class RoutingTable {
     }
 
     public update(other: RoutingTable): void {
+        var changed = false;
         for (var i = 0; i < other._list.length; i++) {
             var row = other._list[i];
             if (this.contains(row)) continue;
-            this.add(row);
+            changed = true;
+            this._list.push(row);
+        }
+        if (changed) {
+            this._onChanged.emit(this);
         }
     }
 
@@ -79,7 +90,11 @@ export class RoutingTable {
             if (other.contains(row)) continue;
             remaining.push(row);
         }
+        var changed = this._list.length == remaining.length;
         this._list = remaining;
+        if (changed) {
+            this._onChanged.emit(this);
+        }
     }
 
     public get length(): number {
