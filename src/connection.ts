@@ -7,37 +7,17 @@ export interface IdentificationData {
 }
 
 export interface ConnectionAPI {
-    endpoint: string; // readonly
+    endpoint: string;
     close(): void;
     connected(remoteAddr: string): void;
     disconnected(remoteAddr: string): void;
     addroutes(routes: any): void;
 
-    onIdentified: event.Event<IdentificationData>; // readonly
-    onConnected: event.Event<string>; // readonly
-    onDisconnected: event.Event<string>; // readonly
-    onRoutesReceived: event.Event<any>; // readonly
+    onIdentified: event.Event<IdentificationData>;
+    onConnected: event.Event<string>;
+    onDisconnected: event.Event<string>;
+    onRoutesReceived: event.Event<any>;
 }
-
-//export class ConnectionAPIImpl implements API {
-//    private _onIdentified: event.Event<IdentificationData>;
-//    private _onConnected: event.Event<string>;
-//    private _onDisconnected: event.Event<string>;
-
-//    public get onIdentified(): event.Event<IdentificationData> {
-//        return this._onIdentified;
-//    }
-
-//    public get onConnected(): event.Event<string> {
-//        return this._onConnected;
-//    }
-
-//    public get onDisconnected(): event.Event<string> {
-//        return this._onDisconnected;
-//    }
-//}
-
-// TODO: Add APIImpl
 
 export interface Callbacks {
     writeMessageData(message: any): void;

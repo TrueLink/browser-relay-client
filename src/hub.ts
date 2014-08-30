@@ -11,68 +11,10 @@ export interface HubAPI {
     guid: string;
     connect(address: string): wsConn.WebSocketConnectionAPI;
     disconnect(address: string): void;
-    connections: connection.ConnectionAPI[];
+    connections(): connection.ConnectionAPI[];
     onConnected: event.Event<connection.ConnectionAPI>;
     onDisconnected: event.Event<connection.ConnectionAPI>;
     onRoutingChanged: event.Event<any>;
-}
-
-export class HubAPIImpl implements HubAPI {
-    private _guid: string;
-    private _manager: ConnectionManager;
-
-    private _onConnected: event.Event<connection.ConnectionAPI>;
-    private _onDisconnected: event.Event<connection.ConnectionAPI>;
-    private _onRoutingChanged: event.Event<any>;
-
-    private _connect: (address: string) => wsConn.WebSocketConnectionAPI;
-    private _disconnect: (address: string) => void;
-
-    constructor(options: {
-        guid: string;
-        manager: ConnectionManager;
-        connect: (address: string) => wsConn.WebSocketConnectionAPI;
-        disconnect: (address: string) => void;
-        onConnected: event.Event<connection.ConnectionAPI>;
-        onDisconnected: event.Event<connection.ConnectionAPI>;
-        onRoutingChanged: event.Event<any>;
-    }) {
-        this._guid = options.guid;
-        this._manager = options.manager;
-        this._onConnected = options.onConnected;
-        this._onDisconnected = options.onDisconnected;
-        this._onRoutingChanged = options.onRoutingChanged;
-        this._connect = options.connect;
-        this._disconnect = options.disconnect;
-    }
-
-    public connect(address: string): wsConn.WebSocketConnectionAPI {
-        return this._connect(address);
-    }
-
-    public disconnect(address: string): void {
-        this._disconnect(address);
-    }
-
-    public get guid(): string {
-        return this._guid;
-    }
-
-    public get connections(): connection.ConnectionAPI[] {
-        return this._manager.get();
-    }
-
-    public get onConnected(): event.Event<connection.ConnectionAPI> {
-        return this._onConnected;
-    }
-
-    public get onDisconnected(): event.Event<connection.ConnectionAPI> {
-        return this._onDisconnected;
-    }
-
-    public get onRoutingChanged(): event.Event<any> {
-        return this._onRoutingChanged;
-    }
 }
 
 export class Hub {
@@ -125,15 +67,17 @@ export class Hub {
     }
 
     private getApi(): HubAPI {
-        return new HubAPIImpl({
+        return {
             guid: this._guid,
             connect: this.connect.bind(this),
             disconnect: this.disconnect.bind(this),
-            manager: this._peers,
+            connections: () => {
+                return this._peers.get();
+            },
             onConnected: this._onConnected,
             onDisconnected: this._onDisconnected,
             onRoutingChanged: this._onRoutingChanged,
-        });
+        }
     }
 
     static create(guid: string, options: {
