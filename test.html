@@ -1,7 +1,6 @@
 <!doctype html>
 <html>
 <head>
-    <title>Ping</title>
     <style>
         form.ramp-conn textarea {
             width: 100%;
@@ -23,6 +22,7 @@
     <script>
         $(function() {
             $("#guid").text(window.hub.guid);
+            window.document.title = window.hub.guid.slice(0, 8);
             var rt = $("#rt");
 
             window.hub.onRoutingChanged.on(function(serialized) {
