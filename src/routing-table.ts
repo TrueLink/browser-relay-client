@@ -39,7 +39,7 @@ export class RoutingRow {
 
     static deserialize(data: any): RoutingRow {
         return new RoutingRow(data[0], data[1], data[2]);
-    } 
+    }
 }
 
 export class RoutingTable {
@@ -52,6 +52,35 @@ export class RoutingTable {
     }
 
     constructor() {
+    }
+
+    public findLinkedParents(self: string): string[] {
+        var result: string[] = [];
+        for (var i = 0; i < this._list.length; i++) {
+            var row = this._list[i];
+            if (row.self != self) continue;
+            result.push(row.parent);
+        }
+        return result;
+    }
+
+    public findLinkedChildren(parent: string): string[] {
+        var result: string[] = [];
+        for (var i = 0; i < this._list.length; i++) {
+            var row = this._list[i];
+            if (row.parent != parent) continue;
+            result.push(row.self);
+        }
+        return result;
+    }
+
+    public findEndpoint(self: string, parent: string): string {
+        for (var i = 0; i < this._list.length; i++) {
+            var row = this._list[i];
+            if (row.self != self) continue;
+            if (row.parent != parent) continue;
+            return row.endpoint;
+        }
     }
 
     public add(row: RoutingRow): void {
