@@ -147,4 +147,40 @@ export class RoutingTable {
         }
         return table;
     }
+
+    public findPath(source: string, destination: string) {
+        var queue: string[] = [];
+        var paths: { [key: string]: { child: string; parent: string; endpoint: string; }[] } = {};
+
+        queue.push(source);
+        paths[source] = [];
+
+        while (queue) {
+            var current = queue.shift();
+            if (current == destination) {
+                return paths[current];
+            }
+
+            this.findLinkedChildren(current).forEach((child) => {
+                if (child in paths) return;
+                queue.push(child);
+                paths[child] = paths[current].concat([{
+                    parent: current,
+                    child: child,
+                    endpoint: this.findEndpoint(child, current),
+                }]);
+            });
+
+            this.findLinkedParents(current).forEach((parent) => {
+                if (parent in paths) return;
+                queue.push(parent);
+                paths[parent] = paths[current].concat([{
+                    child: current,
+                    parent: parent,
+                    endpoint: this.findEndpoint(parent, null),
+                }]);
+            });
+        }
+    }
 }
+
