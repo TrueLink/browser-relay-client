@@ -155,7 +155,7 @@ export class RoutingTable {
         queue.push(source);
         paths[source] = [];
 
-        while (queue) {
+        while (queue.length > 0) {
             var current = queue.shift();
             if (current == destination) {
                 return paths[current];

@@ -126,7 +126,7 @@ export class Protocol {
 
         var message: any = content;
 
-        while (targets) {
+        while (targets.length > 0) {
             var target = targets.pop();
             message = [
                 this.MESSAGE_TYPE.RELAY,
