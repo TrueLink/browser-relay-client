@@ -7,3 +7,5 @@ temp/
 src/.baseDir.ts
 dist/
 lib/
+test/*.js
+test/*.map
