@@ -6,16 +6,24 @@ export interface IdentificationData {
     endpoint: string;
 }
 
+export interface RelayData {
+    destination: string;
+    message: any;
+}
+
 export interface ConnectionAPI {
     endpoint: string;
     close(): void;
-    connected(remoteAddr: string): void;
-    disconnected(remoteAddr: string): void;
+    connected(endpoint: string): void;
+    disconnected(endpoint: string): void;
     addroutes(routes: any): void;
-
+    relay(targetEndpoint: string, content: any): void;
+    relay(targetEndpoint: string[], content: any): void;
+    relayed(endpoint: string, message: string): void;
     onIdentified: event.Event<IdentificationData>;
     onConnected: event.Event<string>;
     onDisconnected: event.Event<string>;
+    onRelay: event.Event<RelayData>;
     onRoutesReceived: event.Event<any>;
 }
 
@@ -32,6 +40,7 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
     private _onIdentified: event.Event<IdentificationData> = new event.Event<IdentificationData>();
     private _onConnected: event.Event<string> = new event.Event<string>();
     private _onDisconnected: event.Event<string> = new event.Event<string>();
+    private _onRelay: event.Event<RelayData> = new event.Event<RelayData>();
     private _onRoutesReceived: event.Event<any> = new event.Event<any>();
    
     constructor() {
@@ -51,9 +60,12 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
             connected: this.writeConnected.bind(this),
             disconnected: this.writeDisconnected.bind(this),
             addroutes: this.writeAddRoutes.bind(this),
+            relay: this.writeRelay.bind(this),
+            relayed: this.writeRelayed.bind(this),
             onIdentified: this._onIdentified,
             onConnected: this._onConnected,
             onDisconnected: this._onDisconnected,
+            onRelay: this._onRelay,
             onRoutesReceived: this._onRoutesReceived,
         };
     }
@@ -90,11 +102,14 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
     }
 
     public readRelayMessage(targetEndpoint: string, message: any): void {
-        console.warn("client can't relay messages at the moment");
+        this._onRelay.emit({
+            destination: targetEndpoint,
+            message: message
+        })
     }
 
     public readRelayedMessage(sourceEndpoint: string, message: any): void {
-        console.warn("client process relayed message");
+        console.warn("processing relayed message", message);
         var MESSAGE_TYPE = this.MESSAGE_TYPE;
         var messageType = message[0];
 

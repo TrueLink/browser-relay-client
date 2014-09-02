@@ -11,7 +11,7 @@ export interface HubAPI {
     guid: string;
     connect(address: string): wsConn.WebSocketConnectionAPI;
     disconnect(address: string): void;
-    sendTo(destination: string, message: string): void;
+    sendTo(destination: string, message: any): void;
     connections(): connection.ConnectionAPI[];
     onConnected: event.Event<connection.ConnectionAPI>;
     onDisconnected: event.Event<connection.ConnectionAPI>;
@@ -70,9 +70,9 @@ export class Hub {
     private getApi(): HubAPI {
         return {
             guid: this._guid,
-            connect: this.connect.bind(this),
-            disconnect: this.disconnect.bind(this),
-            sendTo: this.sendTo.bind(this),
+            connect: this._connect.bind(this),
+            disconnect: this._disconnect.bind(this),
+            sendTo: this._sendTo.bind(this),
             connections: () => {
                 return this._peers.get();
             },
@@ -91,7 +91,7 @@ export class Hub {
         return hub.getApi();
     }
 
-    public connect(address: string): wsConn.WebSocketConnectionAPI {
+    private _connect(address: string): wsConn.WebSocketConnectionAPI {
         var peer = wsConn.WebSocketConnection.create(address);
 
         peer.onOpen.on(() => {
@@ -100,6 +100,13 @@ export class Hub {
 
         peer.onClose.on((event) => {
             this._peers.remove(peer);
+        });
+
+        peer.onRelay.on((data) => {
+            var destination = this._peers.get(data.destination);
+            if (!destination) return;
+            console.log("relaying message from " + peer.endpoint + " to " + data.destination);
+            destination.relayed(peer.endpoint, data.message);
         });
 
         peer.onIdentified.on((data) => {
@@ -124,22 +131,19 @@ export class Hub {
         return peer;
     }
 
-    public isConnected(address: string): boolean {
+    private _isConnected(address: string): boolean {
         return this._peers.get(address) !== undefined
     }
 
-    public disconnect(address: string): void {
+    private _disconnect(address: string): void {
         var peer = this._peers.get(address);
         peer.close();
     }
 
-    public sendTo(destination: string, message: string): void {
+    private _sendTo(destination: string, message: any): void {
         var path = this._routing.findPath(this._guid, destination);
         var start = path.shift().endpoint;
         var peer = this._peers.get(start);
-        for (var i = 0; i < path.length; i++) {
-            var segment = path[i];
-            
-        }
+        peer.relay(path.map((segment) => { return segment.endpoint }), message);
     }
 }
