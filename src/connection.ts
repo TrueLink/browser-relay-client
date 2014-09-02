@@ -95,8 +95,15 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
 
     public readRelayedMessage(sourceEndpoint: string, message: any): void {
         console.warn("client process relayed message");
-    //    var MESSAGE_TYPE = this.MESSAGE_TYPE,
-    //        messageType = message[0];
+        var MESSAGE_TYPE = this.MESSAGE_TYPE;
+        var messageType = message[0];
+
+        switch (messageType) {
+            case MESSAGE_TYPE.RELAY: 
+                this.readRelayMessage(message[1], message[2]);
+                break;
+        }	
+
 
     //    switch (messageType) {
     //        // An initial connection request from a third party peer
