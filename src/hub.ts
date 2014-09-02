@@ -2,7 +2,7 @@
 import event = require("./event");
 import connectionManager = require("./connection-manager");
 import wsConn = require("./websocket-connection");
-import routing = require("./routing-table");
+import routing = require("./routing");
 
 export interface ConnectionManager extends connectionManager.ConnectionManager<connection.ConnectionAPI> {
 }
