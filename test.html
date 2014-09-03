@@ -3,6 +3,7 @@
 <head>
     <style>
         form.ramp-conn textarea {
+            display: none;
             width: 100%;
             height: 90px;
         }
@@ -12,8 +13,17 @@
             height: 200px;
         }
 
+        textarea#log {
+            width: 100%;
+            height: 300px;
+        }
+
         h1 {
             font-family: monospace;
+        }
+
+        #sms input[name=message] {
+            width: 500px;
         }
     </style>
     <script src="dist/index.js"></script>
@@ -21,17 +31,62 @@
 
     <script>
         $(function() {
+            function makeContactListItem(guid) {
+                var input = $("<input>")
+                    .attr("type", "radio")
+                    .attr("name", "dest")
+                    .attr("id", guid)
+                    .val(guid);
+                var label = $("<label>")
+                    .attr("for", guid)
+                    .text(guid);
+                var item = $("<div>")
+                    .addClass("item")
+                    .append(input)
+                    .append(label);
+                return item;
+            }
+
             $("#guid").text(window.hub.guid);
             window.document.title = window.hub.guid.slice(0, 8);
             var rt = $("#rt");
+            var sms = $("#sms");
+            var log = $("#log");
 
-            window.hub.onRoutingChanged.on(function(serialized) {
+            window.hub.onMessage.on(function(message) {
+                var ta = log[0];
+                text = log.text() + "\n" + message;
+                log.text(text.trim());
+                ta.scrollTop = ta.scrollHeight - ta.clientHeight;
+            });
+
+            window.hub.onRoutingChanged.on(function(table) {
                 var result = [];
+                sms.find(".item").remove();
+                var nodes = table.children;
+                for(var i = 0; i < nodes.length; i++) {
+                    var guid = nodes[i]
+                    if(guid != window.hub.guid) {
+                        sms.prepend(makeContactListItem(guid));
+                    }
+                }
+
+                var serialized = table.serialize();
                 for(var i = 0; i < serialized.length; i++) {
                     var row = serialized[i];
                     result.push(row[0] + " -> " + row[2]);
                 }
                 rt.text(result.join("\n"));
+            });
+
+            sms.submit(function() {
+                if(!this.elements.dest) return false;
+                console.log(this.elements.dest.value);
+                var dest = this.elements.dest.value;
+                var message = this.elements.message.value;
+                window.hub.sendTo(dest, message);
+                this.elements.message.value = "";
+                return false;
             });
 
             $("form.ramp-conn").each(function () {
@@ -76,6 +131,16 @@
     </script>
 </head>
 <body>
+    <h1>GUID: <span id="guid"></span></h1>
+
+    <textarea id="log"></textarea>
+
+    <form id="sms">
+        <div><input name="message" type="text" value=""><input type="submit" value="Send"></div>
+    </form>
+    
+    <hr>
+    
     <form id="ramp1" class="ramp-conn">
         <div>
             <input type="text" name="addr" value="ws://127.0.0.1:20500/">
@@ -98,7 +163,6 @@
         </div>
     </form>
 
-    <h1>GUID: <span id="guid"></span></h1>
-    <textarea id="rt"></textarea>    
+    <textarea id="rt"></textarea>
 </body>
 </html>

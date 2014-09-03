@@ -11,22 +11,28 @@ export interface Callbacks {
     readPeerDisconnectedMessage(endpoint: string): void;
     readAddRoutesMessage(table: any): void;
     readIdentificationMessage(authority: string, endpoint: string): void;
-    readRelayMessage(targetEndpoint: string, message: string): void;
-    readRelayedMessage(sourceEndpoint: string, message: string): void;
+    readRelayMessage(targetEndpoint: string, message: any): void;
+    readRelayedMessage(sourceEndpoint: string, message: any): void;
+    readUserMessage(message: any): void;
 }
 
 export var PROTOCOL_NAME = "p";
+export var MESSAGE_TYPE = {
+    DIRECT: 0,
+    PEER_CONNECTED: 1,
+    PEER_DICONNECTED: 2,
+    IDENTIFY: 3,
+    RELAY: 6,
+    RELAYED: 7,
+    ADD_ROUTES: 100,
+    USER_MESSAGE: 200,
+};
 
 export class Protocol {
-    MESSAGE_TYPE = {
-        DIRECT: 0,
-        PEER_CONNECTED: 1,
-        PEER_DICONNECTED: 2,
-        IDENTIFY: 3,
-        RELAY: 6,
-        RELAYED: 7,
-        ADD_ROUTES: 100,
-    };
+
+    public get MESSAGE_TYPE() {
+        return MESSAGE_TYPE;
+    }
 
     private callbacks: Callbacks;
 
@@ -38,7 +44,6 @@ export class Protocol {
     }
 
     public readMessage(message: any): void {
-        var MESSAGE_TYPE = this.MESSAGE_TYPE;
         var callbacks = this.callbacks;
         var messageType = message[0];
 
@@ -67,6 +72,10 @@ export class Protocol {
                 callbacks.readRelayedMessage(message[1], message[2]);
                 break;
 
+            case MESSAGE_TYPE.USER_MESSAGE:
+                callbacks.readUserMessage(message[1]);
+                break;
+
             default:
                 throw new Error('Unknown message type: ' + messageType);
         }
@@ -74,7 +83,7 @@ export class Protocol {
 
     public writeDirect(content: string): void {
         var message = [
-            this.MESSAGE_TYPE.DIRECT,
+            MESSAGE_TYPE.DIRECT,
             content,
         ];
         this.callbacks.writeMessage(message);
@@ -82,7 +91,7 @@ export class Protocol {
 
     public writeConnected(endpoint: string): void {
         var message = [
-            this.MESSAGE_TYPE.PEER_CONNECTED,
+            MESSAGE_TYPE.PEER_CONNECTED,
             endpoint,
         ];
         this.callbacks.writeMessage(message);
@@ -90,7 +99,7 @@ export class Protocol {
 
     public writeDisconnected(endpoint: string): void {
         var message = [
-            this.MESSAGE_TYPE.PEER_DICONNECTED,
+            MESSAGE_TYPE.PEER_DICONNECTED,
             endpoint,
         ];
         this.callbacks.writeMessage(message);
@@ -98,7 +107,7 @@ export class Protocol {
 
     public writeAddRoutes(table: any): void {
         var message = [
-            this.MESSAGE_TYPE.ADD_ROUTES,
+            MESSAGE_TYPE.ADD_ROUTES,
             table,
         ];
         this.callbacks.writeMessage(message);
@@ -106,7 +115,7 @@ export class Protocol {
 
     public writeIdentification(authority: string, endpoint: string): void {
         var message = [
-            this.MESSAGE_TYPE.IDENTIFY,
+            MESSAGE_TYPE.IDENTIFY,
             authority,
             endpoint,
         ];
@@ -129,7 +138,7 @@ export class Protocol {
         while (targets.length > 0) {
             var target = targets.pop();
             message = [
-                this.MESSAGE_TYPE.RELAY,
+                MESSAGE_TYPE.RELAY,
                 target,
                 message,
             ];
@@ -139,7 +148,7 @@ export class Protocol {
 
     public writeRelayed(sourceEndpoint: string, content: any): void {
         var message = [
-            this.MESSAGE_TYPE.RELAYED,
+            MESSAGE_TYPE.RELAYED,
             sourceEndpoint,
             content,
         ];

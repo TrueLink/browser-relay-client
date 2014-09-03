@@ -28,7 +28,7 @@
     <TypeScriptCompile Include="src\event.ts" />
     <TypeScriptCompile Include="src\index.ts" />
     <TypeScriptCompile Include="src\hub.ts" />
-    <TypeScriptCompile Include="src\routing-table.ts" />
+    <TypeScriptCompile Include="src\routing.ts" />
     <TypeScriptCompile Include="src\websocket-connection.ts" />
     <TypeScriptCompile Include="src\protocol.ts" />
     <TypeScriptCompile Include="test\routingTest.ts" />

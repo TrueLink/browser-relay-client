@@ -99,6 +99,26 @@ export class RoutingTable {
         return false;
     }
 
+    public get children(): string[] {
+        var result: string[] = [];
+        for (var i = 0; i < this._list.length; i++) {
+            var row = this._list[i];
+            if (result.indexOf(row.self) >= 0) continue;
+            result.push(row.self);
+        }
+        return result;
+    }
+
+    public get parents(): string[]{
+        var result: string[] = [];
+        for (var i = 0; i < this._list.length; i++) {
+            var row = this._list[i];
+            if (result.indexOf(row.parent) >= 0) continue;
+            result.push(row.parent);
+        }
+        return result;
+    }
+
     public update(other: RoutingTable): void {
         var changed = false;
         for (var i = 0; i < other._list.length; i++) {

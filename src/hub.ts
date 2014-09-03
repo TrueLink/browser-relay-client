@@ -3,6 +3,7 @@ import event = require("./event");
 import connectionManager = require("./connection-manager");
 import wsConn = require("./websocket-connection");
 import routing = require("./routing");
+import protocol = require("./protocol");
 
 export interface ConnectionManager extends connectionManager.ConnectionManager<connection.ConnectionAPI> {
 }
@@ -15,7 +16,8 @@ export interface HubAPI {
     connections(): connection.ConnectionAPI[];
     onConnected: event.Event<connection.ConnectionAPI>;
     onDisconnected: event.Event<connection.ConnectionAPI>;
-    onRoutingChanged: event.Event<any>;
+    onRoutingChanged: event.Event<routing.RoutingTable>;
+    onMessage: event.Event<any>;
 }
 
 export class Hub {
@@ -25,10 +27,11 @@ export class Hub {
 
     private _onConnected: event.Event<connection.ConnectionAPI> = new event.Event<connection.ConnectionAPI>()
     private _onDisconnected: event.Event<connection.ConnectionAPI> = new event.Event<connection.ConnectionAPI>();
-    private _onRoutingChanged: event.Event<any> = new event.Event<any>();
+    private _onRoutingChanged: event.Event<routing.RoutingTable> = new event.Event<routing.RoutingTable>();
+    private _onMessage: event.Event<any> = new event.Event<any>();
 
     constructor(guid: string, peers: ConnectionManager) {
-        this._peers = peers; 
+        this._peers = peers;
         this._guid = guid;
 
         this._peers.onAdd.on((connection) => {
@@ -40,7 +43,7 @@ export class Hub {
         });
 
         this._routing.onChanged.on((routing) => {
-            this._onRoutingChanged.emit(routing.serialize());
+            this._onRoutingChanged.emit(routing);
         });
 
         this._onConnected.on((connection) => {
@@ -61,8 +64,9 @@ export class Hub {
         });
 
         this._onRoutingChanged.on((table) => {
+            var serialized = table.serialize();
             this._peers.get().forEach(function (other) {
-                other.addroutes(table);
+                other.addroutes(serialized);
             });
         });
     }
@@ -79,6 +83,7 @@ export class Hub {
             onConnected: this._onConnected,
             onDisconnected: this._onDisconnected,
             onRoutingChanged: this._onRoutingChanged,
+            onMessage: this._onMessage,
         }
     }
 
@@ -111,7 +116,7 @@ export class Hub {
 
         peer.onIdentified.on((data) => {
             var row = new routing.RoutingRow(this._guid, data.authority, data.endpoint);
-            this._routing.add(row); 
+            this._routing.add(row);
             var table = this._routing.serialize();
             this._peers.get().forEach(function (other) {
                 other.addroutes(table);
@@ -123,9 +128,12 @@ export class Hub {
             routes.subtract(this._routing);
             if (routes.length > 0) {
                 this._routing.update(routes);
-                var table = this._routing.serialize();
-                this._onRoutingChanged.emit(table);
+                this._onRoutingChanged.emit(this._routing);
             }
+        });
+
+        peer.onMessage.on((message) => {
+            this._onMessage.emit(message);
         });
 
         return peer;
@@ -144,6 +152,7 @@ export class Hub {
         var path = this._routing.findPath(this._guid, destination);
         var start = path.shift().endpoint;
         var peer = this._peers.get(start);
-        peer.relay(path.map((segment) => { return segment.endpoint }), message);
+        peer.relay(path.map((segment) => { return segment.endpoint }),
+            [protocol.MESSAGE_TYPE.USER_MESSAGE, message]);
     }
 }

@@ -25,6 +25,7 @@ export interface ConnectionAPI {
     onDisconnected: event.Event<string>;
     onRelay: event.Event<RelayData>;
     onRoutesReceived: event.Event<any>;
+    onMessage: event.Event<any>;
 }
 
 export interface Callbacks {
@@ -42,6 +43,7 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
     private _onDisconnected: event.Event<string> = new event.Event<string>();
     private _onRelay: event.Event<RelayData> = new event.Event<RelayData>();
     private _onRoutesReceived: event.Event<any> = new event.Event<any>();
+    private _onMessage: event.Event<any> = new event.Event<any>();
    
     constructor() {
         super();
@@ -67,6 +69,7 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
             onDisconnected: this._onDisconnected,
             onRelay: this._onRelay,
             onRoutesReceived: this._onRoutesReceived,
+            onMessage: this._onMessage,
         };
     }
 
@@ -80,6 +83,10 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
         var data = JSON.stringify(message);
         console.log("-->", data);
         this._transport.writeMessageData(data);
+    }
+
+    public readUserMessage(message: any): void {
+        this._onMessage.emit(message);
     }
 
     public readPeerConnectedMessage(endpoint: string): void {
@@ -110,15 +117,7 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
 
     public readRelayedMessage(sourceEndpoint: string, message: any): void {
         console.warn("processing relayed message", message);
-        var MESSAGE_TYPE = this.MESSAGE_TYPE;
-        var messageType = message[0];
-
-        switch (messageType) {
-            case MESSAGE_TYPE.RELAY: 
-                this.readRelayMessage(message[1], message[2]);
-                break;
-        }	
-
+        this.readMessage(message);
 
     //    switch (messageType) {
     //        // An initial connection request from a third party peer
