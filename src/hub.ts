@@ -152,7 +152,18 @@ export class Hub {
         var path = this._routing.findPath(this._guid, destination);
         var start = path.shift().endpoint;
         var peer = this._peers.get(start);
-        peer.relay(path.map((segment) => { return segment.endpoint }),
-            [protocol.MESSAGE_TYPE.USER_MESSAGE, message]);
+
+        message = [protocol.MESSAGE_TYPE.USER_MESSAGE, message];
+
+        while (path.length > 0) {
+            var target = path.pop();
+            message = [
+                protocol.MESSAGE_TYPE.RELAY,
+                target.endpoint,
+                message,
+            ];
+        }
+
+        peer.send(message);
     }
 }

@@ -122,27 +122,12 @@ export class Protocol {
         this.callbacks.writeMessage(message);
     }
 
-    public writeRelay(targetEndpoint: string, content: any): void;
-    public writeRelay(targetEndpoint: string[], content: any): void;
-    public writeRelay(targetEndpoint: any, content: any): void {
-        var targets: string[];
-
-        if (!Array.isArray(targetEndpoint)) {
-            targets = [targetEndpoint];
-        } else {
-            targets = targetEndpoint;
-        }
-
-        var message: any = content;
-
-        while (targets.length > 0) {
-            var target = targets.pop();
-            message = [
+    public writeRelay(targetEndpoint: string, content: any): void {
+        var message = [
                 MESSAGE_TYPE.RELAY,
-                target,
-                message,
+            targetEndpoint,
+            content,
             ];
-        }
         this.callbacks.writeMessage(message);
     }
 

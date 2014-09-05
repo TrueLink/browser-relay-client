@@ -18,7 +18,6 @@ export interface ConnectionAPI {
     disconnected(endpoint: string): void;
     addroutes(routes: any): void;
     relay(targetEndpoint: string, content: any): void;
-    relay(targetEndpoint: string[], content: any): void;
     relayed(endpoint: string, message: string): void;
     onIdentified: event.Event<IdentificationData>;
     onConnected: event.Event<string>;
