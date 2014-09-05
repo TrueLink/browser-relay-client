@@ -219,5 +219,23 @@ export class RoutingTable {
         })
         return result;
     }
+
+    public findPaths(source: string, destinations: string[]): { [destination: string]: PathSegment[] } {
+        var result: { [destination: string]: PathSegment[] } = {};
+        var size = 0;
+        this._wave(source, (current, path) => {
+            for (var i = 0; i < destinations.length; i++) {
+                var destination = destinations[i];
+                if (destination in result) continue;
+                if (current != destination) continue;
+                size++;
+                result[destination] = path;
+                if (destinations.length == size) return false;
+                break;
+            }
+            return true;
+        })
+        return result;
+    }
 }
 
