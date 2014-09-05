@@ -42,6 +42,12 @@ export class RoutingRow {
     }
 }
 
+export interface PathSegment {
+    child: string;
+    parent: string;
+    endpoint: string;
+}
+
 export class RoutingTable {
     private _list: Array<RoutingRow> = [];
 
@@ -168,18 +174,17 @@ export class RoutingTable {
         return table;
     }
 
-    public findPath(source: string, destination: string) {
+    private _wave(source: string, callback: (current: string, path: PathSegment[]) => boolean) {
         var queue: string[] = [];
-        var paths: { [key: string]: { child: string; parent: string; endpoint: string; }[] } = {};
+        var paths: { [key: string]: PathSegment[] } = {};
 
         queue.push(source);
         paths[source] = [];
 
         while (queue.length > 0) {
             var current = queue.shift();
-            if (current == destination) {
-                return paths[current];
-            }
+
+            if (!callback(current, paths[current])) break;
 
             this.findLinkedChildren(current).forEach((child) => {
                 if (child in paths) return;
@@ -201,6 +206,18 @@ export class RoutingTable {
                 }]);
             });
         }
+    }
+
+    public findPath(source: string, destination: string) {
+        var result: PathSegment[] = null;
+        this._wave(source, (current, path) => {
+            if (current == destination) {
+                result = path;
+                return false;
+            }
+            return true;
+        })
+        return result;
     }
 }
 
