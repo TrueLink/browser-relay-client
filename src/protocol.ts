@@ -18,14 +18,13 @@ export interface Callbacks {
 
 export var PROTOCOL_NAME = "p";
 export var MESSAGE_TYPE = {
-    DIRECT: 0,
+    USER_MESSAGE: 0,
     PEER_CONNECTED: 1,
     PEER_DICONNECTED: 2,
     IDENTIFY: 3,
-    RELAY: 6,
-    RELAYED: 7,
-    ADD_ROUTES: 100,
-    USER_MESSAGE: 200,
+    ADD_ROUTES: 4,
+    RELAY: 5,
+    RELAYED: 6,
 };
 
 export class Protocol {
@@ -43,47 +42,49 @@ export class Protocol {
         this.callbacks = callbacks;
     }
 
-    public readMessage(message: any): void {
+    public readMessage(message: any[]): void {
         var callbacks = this.callbacks;
-        var messageType = message[0];
+        while (message.length > 0) {
+            var messageType = message.shift();
 
-        switch (messageType) {
-            case MESSAGE_TYPE.PEER_CONNECTED:
-                callbacks.readPeerConnectedMessage(message[1]);
-                break;
+            switch (messageType) {
+                case MESSAGE_TYPE.USER_MESSAGE:
+                    callbacks.readUserMessage(message.shift());
+                    break;
 
-            case MESSAGE_TYPE.PEER_DICONNECTED:
-                callbacks.readPeerDisconnectedMessage(message[1]);
-                break;
+                case MESSAGE_TYPE.PEER_CONNECTED:
+                    callbacks.readPeerConnectedMessage(message.shift());
+                    break;
 
-            case MESSAGE_TYPE.ADD_ROUTES:
-                callbacks.readAddRoutesMessage(message[1]);
-                break;
+                case MESSAGE_TYPE.PEER_DICONNECTED:
+                    callbacks.readPeerDisconnectedMessage(message.shift());
+                    break;
 
-            case MESSAGE_TYPE.IDENTIFY:
-                callbacks.readIdentificationMessage(message[1], message[2]);
-                break;
+                case MESSAGE_TYPE.ADD_ROUTES:
+                    callbacks.readAddRoutesMessage(message.shift());
+                    break;
 
-            case MESSAGE_TYPE.RELAY:
-                callbacks.readRelayMessage(message[1], message[2]);
-                break;
+                case MESSAGE_TYPE.IDENTIFY:
+                    callbacks.readIdentificationMessage(message.shift(), message.shift());
+                    break;
 
-            case MESSAGE_TYPE.RELAYED:
-                callbacks.readRelayedMessage(message[1], message[2]);
-                break;
+                case MESSAGE_TYPE.RELAY:
+                    callbacks.readRelayMessage(message.shift(), message.shift());
+                    break;
 
-            case MESSAGE_TYPE.USER_MESSAGE:
-                callbacks.readUserMessage(message[1]);
-                break;
+                case MESSAGE_TYPE.RELAYED:
+                    callbacks.readRelayedMessage(message.shift(), message.shift());
+                    break;
 
-            default:
-                throw new Error('Unknown message type: ' + messageType);
+                default:
+                    throw new Error('Unknown message type: ' + messageType);
+            }
         }
     }
 
-    public writeDirect(content: string): void {
+    public writeUserMessage(content: any): void {
         var message = [
-            MESSAGE_TYPE.DIRECT,
+            MESSAGE_TYPE.USER_MESSAGE,
             content,
         ];
         this.callbacks.writeMessage(message);
@@ -124,10 +125,10 @@ export class Protocol {
 
     public writeRelay(targetEndpoint: string, content: any): void {
         var message = [
-                MESSAGE_TYPE.RELAY,
+            MESSAGE_TYPE.RELAY,
             targetEndpoint,
             content,
-            ];
+        ];
         this.callbacks.writeMessage(message);
     }
 

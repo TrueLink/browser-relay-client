@@ -17,6 +17,7 @@ export interface ConnectionAPI {
     connected(endpoint: string): void;
     disconnected(endpoint: string): void;
     addroutes(routes: any): void;
+    send(message: any): void;
     relay(targetEndpoint: string, content: any): void;
     relayed(endpoint: string, message: string): void;
     onIdentified: event.Event<IdentificationData>;
@@ -61,6 +62,7 @@ export class Connection extends protocol.Protocol implements protocol.Callbacks 
             connected: this.writeConnected.bind(this),
             disconnected: this.writeDisconnected.bind(this),
             addroutes: this.writeAddRoutes.bind(this),
+            send: this.writeMessage.bind(this),
             relay: this.writeRelay.bind(this),
             relayed: this.writeRelayed.bind(this),
             onIdentified: this._onIdentified,
