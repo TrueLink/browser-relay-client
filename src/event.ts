@@ -23,7 +23,7 @@ export class Event<T> implements IEvent<T> {
     }
 
     public emit(value: T): void {
-        this._handlers.forEach((handler) => {
+        this._handlers.concat().forEach((handler) => {
             handler.callback.call(handler.context || this._context, value);
         });
     }
