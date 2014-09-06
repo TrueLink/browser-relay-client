@@ -129,29 +129,35 @@ describe("Path merging", () => {
         var paths: {[name: string]: string[]} = {
             "A": ["1", "2", "3", "4", "5"],
             "B": ["1", "2", "6", "7", "8"],
-            "C": ["1", "2", "6", "7"]
+            "C": ["1", "2", "6", "7"],
+            "D": ["1", "2", "6", "7", "8", "9"],
         };
 
         expect(routing.mergePaths(paths, (s) => s)).to.deep.equal([
             {
                 segment: "1",
-                names: ["A", "B", "C"],
+                names: ["A", "B", "C", "D"],
+                ends: [],
                 children: [
                     {
                         segment: "2",
-                        names: ["A", "B", "C"],
+                        names: ["A", "B", "C", "D"],
+                        ends: [],
                         children: [
                             {
                                 segment: "3",
                                 names: ["A"],
+                                ends: [],
                                 children: [
                                     {
                                         segment: "4",
                                         names: ["A"],
+                                        ends: [],
                                         children: [
                                             {
                                                 segment: "5",
                                                 names: ["A"],
+                                                ends: ["A"],
                                                 children: []
                                             }
                                         ]
@@ -160,16 +166,26 @@ describe("Path merging", () => {
                             },
                             {
                                 segment: "6",
-                                names: ["B", "C"],
+                                names: ["B", "C", "D"],
+                                ends: [],
                                 children: [
                                     {
                                         segment: "7",
-                                        names: ["B", "C"],
+                                        names: ["B", "C", "D"],
+                                        ends: ["C"],
                                         children: [
                                             {
                                                 segment: "8",
-                                                names: ["B"],
-                                                children: []
+                                                names: ["B", "D"],
+                                                ends: ["B"],
+                                                children: [
+                                                    {
+                                                        segment: "9",
+                                                        names: ["D"],
+                                                        ends: ["D"],
+                                                        children: []
+                                                    }
+                                                ]
                                             }
                                         ]
                                     }

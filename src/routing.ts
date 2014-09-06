@@ -243,6 +243,7 @@ export interface PathTreeNode<T> {
     segment: T;
     children: PathTreeNode<T>[];
     names: string[];
+    ends: string[];
 }
 
 export function mergePaths<T>(paths: { [name: string]: T[] }, getkey: (item: T) => string): PathTreeNode<T>[]{
@@ -261,7 +262,8 @@ export function mergePaths<T>(paths: { [name: string]: T[] }, getkey: (item: T) 
             groups[key] = {
                 segment: segment,
                 names: [],
-                children: []
+                children: [],
+                ends: [],
             };
         }
         groups[key].names.push(name);
@@ -275,9 +277,12 @@ export function mergePaths<T>(paths: { [name: string]: T[] }, getkey: (item: T) 
         var count = 0;
         for (var i = 0; i < group.names.length; i++) {
             var gname = group.names[i];
-            if (paths[gname].length == 0) continue;
-            childPaths[gname] = paths[gname];
-            count++;
+            if (paths[gname].length == 0) {
+                group.ends.push(gname);
+            } else {
+                childPaths[gname] = paths[gname];
+                count++;
+            }
         }
         if (count == 0) continue;
         group.children = mergePaths(childPaths, getkey);
