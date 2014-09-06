@@ -166,4 +166,34 @@ export class Hub {
 
         peer.send(message);
     }
+
+    private _sendMulti(destinations: string[], message: any): void {
+
+        function walk(node: routing.PathTreeNode<routing.PathSegment>) {
+            var pack: any[] = [];
+            for (var i = 0; i < node.children.length; i++) {
+                var child = node.children[i];
+                pack.push(protocol.MESSAGE_TYPE.RELAY);
+                pack.push(child.segment.endpoint);
+                pack.push(walk(child));
+            }
+
+            for (var i = 0; i < node.ends.length; i++) {
+                pack.push(protocol.MESSAGE_TYPE.USER_MESSAGE);
+                pack.push(message);
+            }
+
+            return pack;
+        }
+
+        var paths = this._routing.findPaths(this._guid, destinations);
+        var tree = routing.mergePaths(paths, (segment) => segment.endpoint);
+
+        for (var i = 0; i < tree.length; i++) {
+            var pack: any[] = [];
+            var node = tree[i];
+            var peer = this._peers.get(node.segment.endpoint);
+            peer.send(walk(node));
+        }
+    }
 }
