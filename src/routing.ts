@@ -239,3 +239,49 @@ export class RoutingTable {
     }
 }
 
+export interface PathTreeNode<T> {
+    segment: T;
+    children: PathTreeNode<T>[];
+    names: string[];
+}
+
+export function mergePaths<T>(paths: { [name: string]: T[] }, getkey: (item: T) => string): PathTreeNode<T>[]{
+    var first: { [name: string]: T } = {};
+    for (var name in paths) {
+        first[name] = paths[name].shift();
+    }
+
+    var groups: {
+        [key: string]: PathTreeNode<T>
+    } = {};
+    for (var name in first) {
+        var segment = first[name];
+        var key = getkey(segment);
+        if (!(key in groups)) {
+            groups[key] = {
+                segment: segment,
+                names: [],
+                children: []
+            };
+        }
+        groups[key].names.push(name);
+    }
+
+    var result: PathTreeNode<T>[] = [];
+    for (var key in groups) {
+        var group = groups[key];
+        result.push(group);
+        var childPaths: { [name: string]: T[] } = {};
+        var count = 0;
+        for (var i = 0; i < group.names.length; i++) {
+            var gname = group.names[i];
+            if (paths[gname].length == 0) continue;
+            childPaths[gname] = paths[gname];
+            count++;
+        }
+        if (count == 0) continue;
+        group.children = mergePaths(childPaths, getkey);
+    }
+
+    return result;
+}

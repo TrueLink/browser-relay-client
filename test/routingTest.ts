@@ -123,3 +123,62 @@ describe("Routing multiple paths search", () => {
         });
     });
 });
+
+describe("Path merging", () => {
+    it("Simple data", () => {
+        var paths: {[name: string]: string[]} = {
+            "A": ["1", "2", "3", "4", "5"],
+            "B": ["1", "2", "6", "7", "8"],
+            "C": ["1", "2", "6", "7"]
+        };
+
+        expect(routing.mergePaths(paths, (s) => s)).to.deep.equal([
+            {
+                segment: "1",
+                names: ["A", "B", "C"],
+                children: [
+                    {
+                        segment: "2",
+                        names: ["A", "B", "C"],
+                        children: [
+                            {
+                                segment: "3",
+                                names: ["A"],
+                                children: [
+                                    {
+                                        segment: "4",
+                                        names: ["A"],
+                                        children: [
+                                            {
+                                                segment: "5",
+                                                names: ["A"],
+                                                children: []
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                segment: "6",
+                                names: ["B", "C"],
+                                children: [
+                                    {
+                                        segment: "7",
+                                        names: ["B", "C"],
+                                        children: [
+                                            {
+                                                segment: "8",
+                                                names: ["B"],
+                                                children: []
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]);
+    });
+});
