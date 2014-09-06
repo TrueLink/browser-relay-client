@@ -13,6 +13,7 @@ export interface HubAPI {
     connect(address: string): wsConn.WebSocketConnectionAPI;
     disconnect(address: string): void;
     sendTo(destination: string, message: any): void;
+    sendAll(destinations: string[], message: any): void;
     connections(): connection.ConnectionAPI[];
     onConnected: event.Event<connection.ConnectionAPI>;
     onDisconnected: event.Event<connection.ConnectionAPI>;
@@ -77,6 +78,7 @@ export class Hub {
             connect: this._connect.bind(this),
             disconnect: this._disconnect.bind(this),
             sendTo: this._sendTo.bind(this),
+            sendAll: this._sendAll.bind(this),
             connections: () => {
                 return this._peers.get();
             },
@@ -167,7 +169,7 @@ export class Hub {
         peer.send(message);
     }
 
-    private _sendMulti(destinations: string[], message: any): void {
+    private _sendAll(destinations: string[], message: any): void {
 
         function walk(node: routing.PathTreeNode<routing.PathSegment>) {
             var pack: any[] = [];
