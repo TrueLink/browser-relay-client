@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+    <style>
+        form.ramp-conn textarea {
+            display: none;
+            width: 100%;
+            height: 90px;
+        }
+    </style>
+    <script src="../../dist/index.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/zepto/1.1.4/zepto.js"></script>
+
+    <script>
+        $(function() {
+ 
+             $("form.ramp-conn").each(function () {
+                var form = $(this);
+                var addr = $(this.elements["addr"]).val();
+                var span_id = form.find("#id");
+                var peers = $(this.elements["peers"]);
+                $(this.elements["use"]).change(function() {
+                    if(this.checked) {
+                        var conn = window.hub.connect(addr);
+                        
+                        conn.onIdentified.on(function(data) {
+                            span_id.text(data.endpoint);
+                        });
+
+                        conn.onConnected.on(function(id) {
+                            var list = peers.text().split("\n").filter(Boolean);
+                            var index = list.indexOf(id);
+                            if(index == -1) {
+                                list.push(id);
+                                peers.text(list.join("\n"));
+                            }
+                        });
+
+                        conn.onDisconnected.on(function(id) {
+                            var list = peers.text().split("\n").filter(Boolean);
+                            var index = list.indexOf(id);
+                            if(index >= 0) {
+                                list.splice(index, 1);
+                                peers.text(list.join("\n"));
+                            }
+
+                        });
+                    } else {
+                        span_id.text("");
+                        peers.text("");
+                        window.hub.disconnect(addr);
+                    }                    
+                });
+            });
+
+        });
+    </script>
+</head>
+<body>
+    <h1>GUID: <span id="guid"></span></h1>
+
+    <form id="ramp1" class="ramp-conn">
+        <div>
+            <input type="text" name="addr" value="ws://127.0.0.1:20500/">
+            <input name="use" type="checkbox">
+            <span id="id" type="text"></span>
+        </div>
+        <div>
+            <textarea name="peers"></textarea>
+        </div>
+    </form>
+
+    <form id="ramp2" class="ramp-conn">
+        <div>
+            <input type="text" name="addr" value="ws://127.0.0.1:20501/">
+            <input name="use" type="checkbox">
+            <span id="id" type="text"></span>
+        </div>
+        <div>
+            <textarea name="peers"></textarea>
+        </div>
+    </form>
+
+    <hr>
+
+    <form id="create-channel">
+        <label for="channel-name">New channel name</label>
+        <input id="channel-name" type="text" name="name" value="">
+        <input type="submit" value="Create">
+    </form>
+
+    <div id="channels">
+        <div>
+            <form>
+                <input name="use" type="checkbox"><label>channel1</label>
+            </form>
+            <textarea></textarea>
+            <form>
+                <input name="message" type="text" value=""><input type="submit" value="Send">
+            </form>
+            <hr>
+        </div>
+        <div>
+            <form>
+                <input name="use" type="checkbox"><label>channel2</label>
+            </form>
+            <textarea></textarea>
+            <form>
+                <input name="message" type="text" value=""><input type="submit" value="Send">
+            </form>
+            <hr>
+        </div>
+    </div>
+
+</body>
+</html>
