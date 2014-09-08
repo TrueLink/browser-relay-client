@@ -31,6 +31,7 @@
     <TypeScriptCompile Include="src\routing.ts" />
     <TypeScriptCompile Include="src\websocket-connection.ts" />
     <TypeScriptCompile Include="src\protocol.ts" />
+    <TypeScriptCompile Include="test\eventTest.ts" />
     <TypeScriptCompile Include="test\routingTest.ts" />
     <TypeScriptCompile Include="typings\chai\chai.d.ts" />
     <TypeScriptCompile Include="typings\client.d.ts" />

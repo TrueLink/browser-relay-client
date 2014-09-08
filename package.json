@@ -7,6 +7,9 @@
     "type": "git",
     "url": "https://github.com/overelay/browser-relay-client.git"
   },
+  "scripts": {
+    "test": "mocha --require chai --reporter spec"
+  },
   "author": "Eugene Chernyshov <chernyshov.eugene@gmail.com>",
   "licenses": [
     {
