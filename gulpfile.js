@@ -70,7 +70,7 @@ gulp.task('compile', function () {
 });
 
 gulp.task('bundle', function () {
-    gulp.src("temp/app.js")
+    return gulp.src("temp/app.js")
         .pipe(browserify({
             insertGlobals: true,
             debug: true,
@@ -81,7 +81,7 @@ gulp.task('bundle', function () {
 });
 
 gulp.task('finalize', function() {
-    gulp.src("temp")
+    return gulp.src("temp")
         .pipe(rimraf({ force: true }));
 });
 
