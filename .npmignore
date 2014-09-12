@@ -5,7 +5,5 @@ src/**/*.js
 node_modules/
 temp/
 .baseDir.*
-dist/
-lib/
 test/*.js
 test/*.map
