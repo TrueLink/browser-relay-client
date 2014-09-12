@@ -59,13 +59,14 @@ gulp.task('compile', function () {
         .pipe(dtsLibFilter)
         .pipe(gulp.dest('lib'))
         .pipe(dtsLibFilter.restore())
+        .pipe(gulp.dest('dist'))
         ;
 
     return result.js
         .pipe(jsLibFilter)
         .pipe(gulp.dest('lib'))
         .pipe(jsLibFilter.restore())
-        .pipe(gulp.dest('temp'))        
+        .pipe(gulp.dest('temp'))
         ;
 });
 
