@@ -1,41 +1,43 @@
 {
-    "name": "browser-relay-client",
-    "version": "0.1.1",
-    "description": "Single client representation for peer-to-peer network",
-    "main": "lib/index.js",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/overelay/browser-relay-client.git"
-    },
-    "scripts": {
-        "test": "mocha --require chai --reporter spec"
-    },
-    "author": "Eugene Chernyshov <chernyshov.eugene@gmail.com>",
-    "licenses": [{
-        "type": "LGPLv3",
-        "url": "http://opensource.org/licenses/LGPL-3.0"
-    }],
-    "bugs": {
-        "url": "https://github.com/overelay/browser-relay-client/issues",
-        "email": "chernyshov.eugene@gmail.com"
-    },
-    "homepage": "https://github.com/overelay/browser-relay-client",
-    "devDependencies": {
-        "browserify": "^5.10.0",
-        "chai": "^1.9.1",
-        "gulp": "^3.8.8",
-        "gulp-browserify": "^0.5.0",
-        "gulp-filter": "^1.0.2",
-        "gulp-rename": "^1.2.0",
-        "gulp-rimraf": "^0.1.0",
-        "gulp-type": "^0.3.0",
-        "mocha": "^1.21.4",
-        "run-sequence": "^0.3.6"
-    },
-    "dependencies": {
-        "node-uuid": "^1.4.1"
-    },
-    "publishConfig": {
-        "registry": "http://localhost:5984/registry/_design/app/_rewrite"
+  "name": "browser-relay-client",
+  "version": "0.1.2",
+  "description": "Single client representation for peer-to-peer network",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/overelay/browser-relay-client.git"
+  },
+  "scripts": {
+    "test": "mocha --require chai --reporter spec"
+  },
+  "author": "Eugene Chernyshov <chernyshov.eugene@gmail.com>",
+  "licenses": [
+    {
+      "type": "LGPLv3",
+      "url": "http://opensource.org/licenses/LGPL-3.0"
     }
+  ],
+  "bugs": {
+    "url": "https://github.com/overelay/browser-relay-client/issues",
+    "email": "chernyshov.eugene@gmail.com"
+  },
+  "homepage": "https://github.com/overelay/browser-relay-client",
+  "devDependencies": {
+    "browserify": "^5.10.0",
+    "chai": "^1.9.1",
+    "gulp": "^3.8.8",
+    "gulp-browserify": "^0.5.0",
+    "gulp-filter": "^1.0.2",
+    "gulp-rename": "^1.2.0",
+    "gulp-rimraf": "^0.1.0",
+    "gulp-type": "^0.3.0",
+    "mocha": "^1.21.4",
+    "run-sequence": "^0.3.6"
+  },
+  "dependencies": {
+    "node-uuid": "^1.4.1"
+  },
+  "publishConfig": {
+    "registry": "http://localhost:5984/registry/_design/app/_rewrite"
+  }
 }
