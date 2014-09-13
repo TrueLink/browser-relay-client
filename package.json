@@ -36,8 +36,5 @@
   },
   "dependencies": {
     "node-uuid": "^1.4.1"
-  },
-  "publishConfig": {
-    "registry": "http://localhost:5984/registry/_design/app/_rewrite"
   }
 }
