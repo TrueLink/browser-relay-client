@@ -30,7 +30,7 @@
     "gulp-filter": "^1.0.2",
     "gulp-rename": "^1.2.0",
     "gulp-rimraf": "^0.1.0",
-    "gulp-type": "^0.3.0",
+    "gulp-typescript": "^2.0.0",
     "mocha": "^1.21.4",
     "run-sequence": "^0.3.6"
   },
