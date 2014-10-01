@@ -17,9 +17,11 @@
     <IISExpressUseClassicPipelineMode />
   </PropertyGroup>
   <ItemGroup>
+    <Content Include="gulpfile.js" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="index.d.ts" />
     <TypeScriptCompile Include="src\.baseDir.ts" />
     <TypeScriptCompile Include="src\app.ts" />
     <TypeScriptCompile Include="src\connection-manager.ts" />
@@ -33,7 +35,6 @@
     <TypeScriptCompile Include="test\eventTest.ts" />
     <TypeScriptCompile Include="test\routingTest.ts" />
     <TypeScriptCompile Include="typings\chai\chai.d.ts" />
-    <TypeScriptCompile Include="typings\client.d.ts" />
     <TypeScriptCompile Include="typings\mocha\mocha.d.ts" />
     <TypeScriptCompile Include="typings\node-uuid\node-uuid.d.ts" />
     <TypeScriptCompile Include="typings\node\node.d.ts" />
@@ -45,6 +46,7 @@
     <Content Include="README.md" />
     <Content Include="package.json" />
     <Content Include="tsd.json" />
+    <Content Include=".npmignore" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
