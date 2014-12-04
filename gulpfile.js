@@ -28,7 +28,7 @@ gulp.task('compile', function () {
         module: 'commonjs',
         target: 'ES5',
         noImplicitAny: true, 
-        noLib: true, 
+        noLib: false, 
         outDir: 'lib',
     });
 
@@ -48,7 +48,3 @@ gulp.task('compile', function () {
         .pipe(gulp.dest('lib'))
         ;
 });
-
-// gulp.task('spa', ['compile'], function () {
-//     spa.from_config("spa.yaml").build();
-// });
