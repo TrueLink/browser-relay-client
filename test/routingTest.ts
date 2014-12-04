@@ -1,4 +1,4 @@
-﻿import client = require('../src/index');
+﻿import client = require('../lib/index');
 import routing = client.routing;
 import chai = require("chai");
 var expect = chai.expect;

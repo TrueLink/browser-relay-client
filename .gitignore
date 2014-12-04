@@ -1,11 +1,8 @@
 obj/
 bin/
-src/**/*.map
-src/**/*.js
 node_modules/
 temp/
 .baseDir.*
-dist/
 lib/
 test/*.js
-test/*.map
+.ntvs_analysis.dat
