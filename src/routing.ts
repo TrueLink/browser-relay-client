@@ -270,7 +270,8 @@ export function mergePaths<T>(paths: { [name: string]: T[] }, getkey: (item: T) 
     }
 
     var result: PathTreeNode<T>[] = [];
-    for (var key in groups) {
+    var key: string;
+    for (key in groups) {
         var group = groups[key];
         result.push(group);
         var childPaths: { [name: string]: T[] } = {};
