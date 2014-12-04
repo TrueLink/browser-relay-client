@@ -6,3 +6,4 @@ temp/
 lib/
 test/*.js
 .ntvs_analysis.dat
+.ntvs_analysis.dat.tmp
