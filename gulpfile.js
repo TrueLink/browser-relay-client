@@ -2,7 +2,6 @@ var gulp = require('gulp');
 var ts = require('gulp-typescript');
 var gulpFilter = require('gulp-filter');
 var rimraf = require('gulp-rimraf');
-var browserify = require('gulp-browserify');
 var runSequence = require('run-sequence');
 var rename = require("gulp-rename");
 
