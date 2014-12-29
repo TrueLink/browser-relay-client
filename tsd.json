@@ -13,6 +13,9 @@
     },
     "chai/chai.d.ts": {
       "commit": "44a5ac12c6d919fba2c088510592d2b5416bf209"
+    },
+    "websocket/websocket.d.ts": {
+      "commit": "ca32947b75a2b1203779dac7154ffbc232746e4d"
     }
   }
 }

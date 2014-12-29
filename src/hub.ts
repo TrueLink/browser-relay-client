@@ -99,7 +99,7 @@ export class Hub {
     }
 
     private _connect(address: string): wsConn.WebSocketConnectionAPI {
-        var peer = wsConn.WebSocketConnection.create(address);
+        var peer = wsConn.create(address);
 
         peer.onOpen.on(() => {
             this._peers.add(peer);
