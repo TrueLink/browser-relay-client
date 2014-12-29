@@ -1,14 +1,13 @@
 ﻿import connection = require("./connection");
 import protocol = require("./protocol");
 import event = require("./event");
+import WebSocketClient = require('websocket');
 
 export interface WebSocketConnectionAPI extends connection.ConnectionAPI {
     onOpen: event.Event<Event>;
     onError: event.Event<ErrorEvent>;
     onClose: event.Event<CloseEvent>;
 }
-
-import WebSocketClient = require('websocket');
 
 export class NodeWebSocketConnection extends connection.Connection {
 
@@ -149,7 +148,7 @@ export class BrowserWebSocketConnection extends connection.Connection {
 export function create(address: string, options: {
     PROTOCOL_NAME?: string;
 } = {}): WebSocketConnectionAPI {
-    if (!this.navigator) {
+    if (this.navigator) {
         return BrowserWebSocketConnection.create(address, options);
     } else {
         return NodeWebSocketConnection.create(address, options);
