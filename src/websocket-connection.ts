@@ -29,21 +29,21 @@ export class WebSocketConnection extends connection.Connection {
 
         this._webSocket = webSocket;
 
-        this._webSocket.addEventListener('message', (event) => {
+        this._webSocket.onmessage = (event) => {
             this.readMessageData(event.data);
-        });
+        };
 
-        this._webSocket.addEventListener('open', (event) => {
+        this._webSocket.onopen = (event) => {
             this.onOpen.emit(event);
-        });
+        };
 
-        this._webSocket.addEventListener('error', (event) => {
+        this._webSocket.onerror = (event) => {
             this.onError.emit(event);
-        });
+        };
 
-        this._webSocket.addEventListener('close', (event) => {
+        this._webSocket.onclose = (event) => {
             this.onClose.emit(event);
-        });
+        };
     }
 
     public writeMessageData(data: string) {
