@@ -1,6 +1,6 @@
 {
   "name": "browser-relay-client",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Single client representation for peer-to-peer network",
   "main": "lib/index.js",
   "repository": {
