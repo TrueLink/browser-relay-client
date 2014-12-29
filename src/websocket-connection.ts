@@ -148,7 +148,7 @@ export class BrowserWebSocketConnection extends connection.Connection {
 export function create(address: string, options: {
     PROTOCOL_NAME?: string;
 } = {}): WebSocketConnectionAPI {
-    if (typeof global === "undefined") {
+    if (global.navigator) {
         return BrowserWebSocketConnection.create(address, options);
     } else {
         return NodeWebSocketConnection.create(address, options);
